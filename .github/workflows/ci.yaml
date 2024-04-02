@@ -1,0 +1,55 @@
+name: CI/CD
+
+on: push
+
+jobs:
+  ci_cd:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        node-version: [20]
+    env:
+      CI: true
+    steps:
+      - name: Checkout ${{ github.sha }}
+        uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: https://registry.npmjs.org/
+      - name: Install Pulumi
+        run: curl -fsSL https://get.pulumi.com | sh
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Build
+        run: npm run build --if-present
+      - name: Test
+        run: npm run test --if-present
+      
+      - name: Setup WARP for IPv6 connectivity
+        if: github.ref == 'refs/heads/master'
+        uses: fscarmen/warp-on-actions@v1.1
+      - name: Configure for deployment
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mkdir -p ~/.aws
+          echo "$AWS_CONFIG" > ~/.aws/config
+          echo "$AWS_CREDENTIALS" > ~/.aws/credentials
+          pulumi login s3://domdomegg-pulumi-backend/homelab
+
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG" > ~/.kube/config
+
+          echo "$PROD_ENV" > src/env/prod.ts
+        env:
+          AWS_CONFIG: ${{ secrets.AWS_CONFIG }}
+          AWS_CREDENTIALS: ${{ secrets.AWS_CREDENTIALS }}
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+          PROD_ENV: ${{ secrets.PROD_ENV }}
+      - name: Deploy
+        if: github.ref == 'refs/heads/master'
+        run: npm run deploy:prod

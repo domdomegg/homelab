@@ -1,0 +1,38 @@
+{
+  "name": "homelab",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "postinstall": "shx cp -n src/env/prod.template.ts src/env/prod.ts",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --watch",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "build": "tsc --project tsconfig.build.json",
+    "preview": "PULUMI_CONFIG_PASSPHRASE=unused pulumi preview --stack prod",
+    "deploy:prod": "PULUMI_CONFIG_PASSPHRASE=unused pulumi up --stack prod --yes"
+  },
+  "dependencies": {
+    "@pulumi/kubernetes": "^4.5.5",
+    "@pulumi/pulumi": "^3.95.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node-lts": "^20.1.0",
+    "@tsconfig/strictest": "^2.0.2",
+    "eslint": "^8.56.0",
+    "eslint-config-domdomegg": "^1.2.3",
+    "shx": "^0.3.4",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint-config-domdomegg"
+    ],
+    "rules": {
+      "no-new": [
+        "off"
+      ]
+    }
+  }
+}

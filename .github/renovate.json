@@ -1,0 +1,20 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended",
+        ":disableDependencyDashboard"
+    ],
+    "enabledManagers": [
+        "custom.regex"
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "fileMatch": ["src/k8s/appDefinitions.ts"],
+            "matchStrings": ["('|\\\")(?<depName>[a-z0-9-/.]*?):(?<currentValue>[a-z0-9-/.]*?)@(?<currentDigest>sha256:[0-9a-f]+?)('|\\\")"],
+            "datasourceTemplate": "docker"
+        }
+    ],
+    "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
+    "addLabels": ["dependencies"]
+}

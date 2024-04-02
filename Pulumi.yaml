@@ -1,0 +1,5 @@
+name: infra
+runtime: nodejs
+config:
+  pulumi:disable-default-providers:
+    - kubernetes
