@@ -50,6 +50,12 @@ jobs:
           AWS_CREDENTIALS: ${{ secrets.AWS_CREDENTIALS }}
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
           PROD_ENV: ${{ secrets.PROD_ENV }}
+      - id: later_runs_check
+        name: Check for later runs
+        uses: fkirc/skip-duplicate-actions@v5.3.1
+        with:
+          cancel_others: false
+          concurrent_skipping: outdated_runs
       - name: Deploy
-        if: github.ref == 'refs/heads/master'
+        if: ${{ github.ref == 'refs/heads/master' && steps.later_runs_check.outputs.should_skip != 'true' }}
         run: npm run deploy:prod
