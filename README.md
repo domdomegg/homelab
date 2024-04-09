@@ -2,7 +2,7 @@
 
 Infrastructure as code (IaC) configuration for my homelab setup.
 
-Currently hosted on a [Dell XPS 9370](https://en.wikipedia.org/wiki/Dell_XPS#XPS_13_(9370,_Early_2018)). Mostly managed with [Pulumi](https://www.pulumi.com/), via [the Kubernetes provider](https://www.pulumi.com/registry/packages/kubernetes/).
+Currently hosted on a [Dell XPS 9370](https://en.wikipedia.org/wiki/Dell_XPS#XPS_13_(9370,_Early_2018)) with a SONOFF Zigbee Dongle-P adapter. Mostly managed with [Pulumi](https://www.pulumi.com/), via [the Kubernetes provider](https://www.pulumi.com/registry/packages/kubernetes/).
 
 Automatically deployed via GitHub CI.
 
@@ -35,7 +35,7 @@ Add a block to [`appDefinitions.ts`](./src/k8s/appDefinitions.ts).
 To get a kubernetes cluster that you can run this all on, we install Ubuntu server + k3s. Full instructions:
 
 1. Download the [Ubuntu Server](https://ubuntu.com/download/server) `.iso`
-2. Install [Ventoy](https://www.ventoy.net/) onto a USB stick, and copy over Ubuntu Server
+2. Install [Ventoy](https://www.ventoy.net/en/doc_start.html) onto a USB stick, and copy over Ubuntu Server
 3. Run the Ubuntu Server installer via Ventoy, and during installation choose:
    - Connect to internet
    - Enable OpenSSH server
