@@ -2,8 +2,8 @@ name: Renovate
 
 on:
   schedule:
-    # 4am on Saturday
-    - cron: '0 4 * * 6'
+    # 4:00am, 4:15am, 4:30am on Saturday
+    - cron: '0,15,30 4 * * 6'
   workflow_dispatch:
 
 jobs:
