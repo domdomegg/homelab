@@ -86,7 +86,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'zigbee2mqtt',
-        image: 'koenkk/zigbee2mqtt:latest@sha256:d37f2f8227d9c2763ddbe06e48328f9ec3a9b8cf081dfcbda44c9b0af4c0c634',
+        image: 'koenkk/zigbee2mqtt:latest@sha256:8a893949ab01ea25fe1189a02a24f7fee3d7e8717d0973bd3dd6989a3a45a6bf',
         // Necessary to access the USB Zigbee stick
         securityContext: {
           privileged: true,
