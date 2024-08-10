@@ -142,7 +142,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'ddclient',
-        image: 'linuxserver/ddclient:latest@sha256:39b1474053f2928d118dd7090d32f4eed52f20e535d5a65e808613a7b273b424',
+        image: 'linuxserver/ddclient:latest@sha256:79c5e7558fa986067f3dd8e733894eaa2c9ce706e34041f16e6dfaa5a416260f',
         volumeMounts: [
           {
             name: 'ddclient-configmap-volume',
