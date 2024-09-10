@@ -1,6 +1,6 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
-  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, zigbee2mqttConfigmap,
+  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, zigbee2mqttConfigmap, esphomeDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -196,6 +196,35 @@ export const apps: AppDefinition[] = [
       }],
     },
     ingress: { host: `vouch.${env.BASE_DOMAIN}`, auth: false },
+  },
+  {
+    name: 'esphome',
+    targetPort: 6052,
+    spec: {
+      containers: [{
+        name: 'esphome',
+        image: 'ghcr.io/esphome/esphome:latest@sha256:c6e7d74af4ba4b6d69ff28d2be582e0731b68e2b2d7ee1c1b0b292822b4e8487',
+        env: [{
+          name: 'ESPHOME_DASHBOARD_USE_PING',
+          value: 'true',
+        }],
+        volumeMounts: [
+          {
+            name: 'esphome-data-volume',
+            mountPath: '/config',
+          },
+        ],
+      }],
+      volumes: [
+        {
+          name: 'esphome-data-volume',
+          persistentVolumeClaim: {
+            claimName: esphomeDataPvc.metadata.name,
+          },
+        },
+      ],
+    },
+    ingress: { host: `esphome.${env.BASE_DOMAIN}`, auth: true },
   },
 ];
 

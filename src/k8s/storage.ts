@@ -143,3 +143,20 @@ ${env.BASE_DOMAIN}
 `,
   },
 }, { provider });
+
+export const esphomeDataPvc = new k8s.core.v1.PersistentVolumeClaim('esphome-data-pvc', {
+  metadata: {
+    name: 'esphome-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '10Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
