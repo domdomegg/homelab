@@ -203,7 +203,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'esphome',
-        image: 'ghcr.io/esphome/esphome:latest@sha256:adfe1bec7a67651385429c4e5baf8d3d52cc07a16fce5962b91f5ef2bcc9e05c',
+        image: 'ghcr.io/esphome/esphome:latest@sha256:26a3b54a42c110640bd72bc7c6302ae2607404b89206be07c90410a8677a5002',
         env: [{
           name: 'ESPHOME_DASHBOARD_USE_PING',
           value: 'true',
