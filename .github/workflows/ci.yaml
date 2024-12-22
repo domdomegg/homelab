@@ -32,7 +32,7 @@ jobs:
       
       - name: Setup WARP for IPv6 connectivity
         if: github.ref == 'refs/heads/master'
-        uses: fscarmen/warp-on-actions@v1.1
+        uses: fscarmen/warp-on-actions@v1.3
       - name: Configure for deployment
         if: github.ref == 'refs/heads/master'
         run: |
