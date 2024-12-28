@@ -167,7 +167,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'vouch-proxy',
-        image: 'quay.io/vouch/vouch-proxy:latest@sha256:2e6b58ad8c8bdcee4aa6b98c8d6d02f6c3e6aca6fc35a016054e5d867ce70104',
+        image: 'quay.io/vouch/vouch-proxy:latest@sha256:b1f82c00eb5b154aeb9f58a7c846a73ff9ae683fe4e51953f8fa188baa50006f',
         env: [{
           name: 'VOUCH_ALLOWALLUSERS',
           value: 'true',
