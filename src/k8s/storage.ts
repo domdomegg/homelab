@@ -53,6 +53,9 @@ http:
 # https://www.home-assistant.io/integrations/alexa.smart_home/
 alexa:
   smart_home:
+    filter:
+      include_entity_globs:
+        - "light.*_lights"
 `,
   },
 }, { provider });
