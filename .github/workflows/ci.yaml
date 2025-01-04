@@ -55,6 +55,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5.3.1
         with:
           cancel_others: false
+          skip_after_successful_duplicate: false
           concurrent_skipping: outdated_runs
       - name: Deploy
         if: ${{ github.ref == 'refs/heads/master' && steps.later_runs_check.outputs.should_skip != 'true' }}
