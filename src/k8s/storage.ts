@@ -132,11 +132,9 @@ export const ddclientConfigmap = new k8s.core.v1.ConfigMap('ddclient-configmap',
     name: 'ddclient-configmap',
   },
   data: {
-    // Keep DEFAULT CONFIG section up to date with https://github.com/home-assistant/core/blob/master/homeassistant/config.py#L89
     'ddclient.conf': `# This file is managed from K8s
 daemon=3600
 usev6=webv6,webv6=v6.ipinfo.io/ip
-ssl=yes
 protocol=porkbun
 verbose=yes
 debug=yes
