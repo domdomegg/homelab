@@ -113,6 +113,7 @@ mqtt:
   server: 'mqtt://mosquitto-svc:80'
 
 serial:
+  adapter: zstack
   # Location of adapter
   port: /dev/ttyUSB0
 

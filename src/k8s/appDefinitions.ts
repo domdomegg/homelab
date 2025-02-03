@@ -1,6 +1,6 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
-  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, zigbee2mqttConfigmap, esphomeDataPvc,
+  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -96,11 +96,6 @@ export const apps: AppDefinition[] = [
             name: 'zigbee2mqtt-data-volume',
             mountPath: '/app/data',
           },
-          {
-            name: 'zigbee2mqtt-configmap-volume',
-            mountPath: '/app/data/configuration.yaml',
-            subPath: 'configuration.yaml',
-          },
           // Access to the USB Zigbee stick
           {
             name: 'zigbee2mqtt-usb-volume',
@@ -113,12 +108,6 @@ export const apps: AppDefinition[] = [
           name: 'zigbee2mqtt-data-volume',
           persistentVolumeClaim: {
             claimName: zigbee2mqttDataPvc.metadata.name,
-          },
-        },
-        {
-          name: 'zigbee2mqtt-configmap-volume',
-          configMap: {
-            name: zigbee2mqttConfigmap.metadata.name,
           },
         },
         {
