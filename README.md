@@ -123,12 +123,15 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     ```
 13. Get the kubeconfig.
 
-    On the external system you want to get the config, run:
+    Find it in /etc/rancher/k3s/k3
+    You might want to tweak the `server: ` line to set the remote address, and potentially add `tls-server-name: kubernetes` to avoid certificate warnings.
+
+    Or, on the external system you want to get the config, run:
     ```bash
     # NB: this will overwrite ~/.kube/config
     mkdir -p ~/.kube && ssh -t xps 'sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/\[::1]/\[$(ip route get 2606:4700:4700::1111 | awk '\''{print $11}'\'')]/g"' > ~/.kube/config
     ```
-    This will substitute in the IP the system uses to reach the internet as the address to connect with kubectl. Adjust if necessary.
+    This will substitute in the IP the system uses to reach the internet as the address to connect with kubectl.
 
 ### Useful server admin commands
 
