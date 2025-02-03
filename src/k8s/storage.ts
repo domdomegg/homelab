@@ -134,7 +134,7 @@ export const ddclientConfigmap = new k8s.core.v1.ConfigMap('ddclient-configmap',
   data: {
     'ddclient.conf': `# This file is managed from K8s
 daemon=3600
-usev6=webv6,webv6=v6.ipinfo.io/ip
+usev6=webv6,webv6=ipify-ipv6
 protocol=porkbun
 verbose=yes
 debug=yes
