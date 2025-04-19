@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   renovate_automation:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ github.actor == github.event.repository.owner.login && startsWith(github.event.pull_request.head.ref, 'renovate/') }}
     steps:
