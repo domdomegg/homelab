@@ -22,7 +22,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'ha',
-        image: 'ghcr.io/home-assistant/home-assistant:stable@sha256:35c4134b1d0d83cb91bfe2da29fd4ca2c009e58993a345ef0922e61317c0c6ca',
+        image: 'ghcr.io/home-assistant/home-assistant:stable@sha256:cd742b4b3311c7e84a978448860088e734221e9314b73e3931d148d1b081a263',
         // Necessary to access the Bluetooth
         securityContext: {
           privileged: true,
