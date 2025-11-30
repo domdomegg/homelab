@@ -163,22 +163,22 @@ export const esphomeDataPvc = new k8s.core.v1.PersistentVolumeClaim('esphome-dat
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
-// export const whisperDataPvc = new k8s.core.v1.PersistentVolumeClaim('whisper-data-pvc', {
-//   metadata: {
-//     name: 'whisper-data-pvc',
-//     annotations: {
-//       'pulumi.com/skipAwait': 'true',
-//     },
-//   },
-//   spec: {
-//     accessModes: ['ReadWriteOnce'],
-//     resources: {
-//       requests: {
-//         storage: '1Gi',
-//       },
-//     },
-//   },
-// }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+export const whisperDataPvc = new k8s.core.v1.PersistentVolumeClaim('whisper-data-pvc', {
+  metadata: {
+    name: 'whisper-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '5Gi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
 export const piperDataPvc = new k8s.core.v1.PersistentVolumeClaim('piper-data-pvc', {
   metadata: {
