@@ -1,6 +1,6 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
-  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc,
+  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -215,31 +215,31 @@ export const apps: AppDefinition[] = [
     },
     ingress: { host: `esphome.${env.BASE_DOMAIN}`, auth: true },
   },
-  // {
-  //   name: 'whisper',
-  //   targetPort: 10300,
-  //   spec: {
-  //     containers: [{
-  //       name: 'whisper',
-  //       image: 'rhasspy/wyoming-whisper',
-  //       args: ['--model', 'small.en', '--language', 'en'],
-  //       volumeMounts: [
-  //         {
-  //           name: 'whisper-data-volume',
-  //           mountPath: '/data',
-  //         },
-  //       ],
-  //     }],
-  //     volumes: [
-  //       {
-  //         name: 'whisper-data-volume',
-  //         persistentVolumeClaim: {
-  //           claimName: whisperDataPvc.metadata.name,
-  //         },
-  //       },
-  //     ],
-  //   },
-  // },
+  {
+    name: 'whisper',
+    targetPort: 10300,
+    spec: {
+      containers: [{
+        name: 'whisper',
+        image: 'rhasspy/wyoming-whisper:latest@sha256:995b37523bc422f4f7649e50ccded97a5b9bf6d1d0420591183a778dd5d7d3f2',
+        args: ['--stt-library', 'sherpa', '--model', 'sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8', '--language', 'en'],
+        volumeMounts: [
+          {
+            name: 'whisper-data-volume',
+            mountPath: '/data',
+          },
+        ],
+      }],
+      volumes: [
+        {
+          name: 'whisper-data-volume',
+          persistentVolumeClaim: {
+            claimName: whisperDataPvc.metadata.name,
+          },
+        },
+      ],
+    },
+  },
   {
     name: 'piper',
     targetPort: 10200,
