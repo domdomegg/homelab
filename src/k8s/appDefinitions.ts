@@ -1,6 +1,6 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
-  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc,
+  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -264,6 +264,38 @@ export const apps: AppDefinition[] = [
         },
       ],
     },
+  },
+  {
+    name: 'puregym-google-wallet',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'puregym-google-wallet',
+        image: 'ghcr.io/domdomegg/puregym-google-wallet:latest',
+        env: [{
+          name: 'GOOGLE_SERVICE_ACCOUNT_JSON',
+          value: env.GOOGLE_SERVICE_ACCOUNT_JSON,
+        }, {
+          name: 'GOOGLE_WALLET_ISSUER_ID',
+          value: env.GOOGLE_WALLET_ISSUER_ID,
+        }],
+        volumeMounts: [
+          {
+            name: 'puregym-google-wallet-data-volume',
+            mountPath: '/app/data',
+          },
+        ],
+      }],
+      volumes: [
+        {
+          name: 'puregym-google-wallet-data-volume',
+          persistentVolumeClaim: {
+            claimName: puregymGoogleWalletDataPvc.metadata.name,
+          },
+        },
+      ],
+    },
+    ingress: { host: `puregym.${env.BASE_DOMAIN}`, auth: false },
   },
 ];
 
