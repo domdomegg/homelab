@@ -13,7 +13,7 @@
     "deploy:prod": "PULUMI_CONFIG_PASSPHRASE=unused pulumi up --stack prod --yes"
   },
   "dependencies": {
-    "@pulumi/kubernetes": "^4.5.5",
+    "@pulumi/kubernetes": "^4.25.0",
     "@pulumi/pulumi": "^3.217.1"
   },
   "devDependencies": {
