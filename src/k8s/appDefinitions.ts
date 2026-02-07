@@ -63,7 +63,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'eclipse-mosquitto',
-        image: 'eclipse-mosquitto:latest@sha256:b4b46a35b99c198070cf2d2724909c7a2aa583236316a3e1680353164a843040',
+        image: 'eclipse-mosquitto:latest@sha256:9fec559dbc89664d171ac8ea8230bbbeb50c2eb52615d631599ec31cbccbfb39',
         volumeMounts: [
           {
             name: 'mosquitto-configmap-volume',
