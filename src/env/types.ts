@@ -13,4 +13,7 @@ export interface Env {
   GOOGLE_SERVICE_ACCOUNT_JSON: string,
   /** Google Wallet issuer ID */
   GOOGLE_WALLET_ISSUER_ID: string,
+
+  /** ECDSA P-256 JWK signing key for hass-oidc-provider */
+  HASS_OIDC_SIGNING_KEY: string,
 }

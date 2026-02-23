@@ -9,6 +9,8 @@ const env: Env = {
 
   GOOGLE_SERVICE_ACCOUNT_JSON: '{}',
   GOOGLE_WALLET_ISSUER_ID: '',
+
+  HASS_OIDC_SIGNING_KEY: '{"kty":"EC","crv":"P-256","x":"...","y":"...","d":"..."}',
 };
 
 export default env;

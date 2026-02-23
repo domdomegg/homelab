@@ -266,6 +266,25 @@ export const apps: AppDefinition[] = [
     },
   },
   {
+    name: 'hass-oidc-provider',
+    targetPort: 3001,
+    spec: {
+      containers: [{
+        name: 'hass-oidc-provider',
+        image: 'ghcr.io/domdomegg/hass-oidc-provider',
+        env: [{
+          name: 'HASS_OIDC_CONFIG',
+          value: JSON.stringify({
+            hassUrl: `https://${env.BASE_DOMAIN}`,
+            externalUrl: `https://oidc.${env.BASE_DOMAIN}`,
+            signingKey: env.HASS_OIDC_SIGNING_KEY,
+          }),
+        }],
+      }],
+    },
+    ingress: { host: `oidc.${env.BASE_DOMAIN}`, auth: false },
+  },
+  {
     name: 'puregym-google-wallet',
     targetPort: 3000,
     spec: {
