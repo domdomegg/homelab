@@ -213,3 +213,37 @@ export const puregymGoogleWalletDataPvc = new k8s.core.v1.PersistentVolumeClaim(
     },
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+export const starlingBankMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('starling-bank-mcp-data-pvc', {
+  metadata: {
+    name: 'starling-bank-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('openfoodfacts-mcp-data-pvc', {
+  metadata: {
+    name: 'openfoodfacts-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });

@@ -11,6 +11,10 @@ const env: Env = {
   GOOGLE_WALLET_ISSUER_ID: '',
 
   HASS_OIDC_SIGNING_KEY: '{"kty":"EC","crv":"P-256","x":"...","y":"...","d":"..."}',
+
+  GOOGLE_MCP_CLIENT_ID: '',
+  GOOGLE_MCP_CLIENT_SECRET: '',
+  MCP_AUTH_WRAPPER_SECRET: '',
 };
 
 export default env;

@@ -16,4 +16,11 @@ export interface Env {
 
   /** ECDSA P-256 JWK signing key for hass-oidc-provider */
   HASS_OIDC_SIGNING_KEY: string,
+
+  /** Google OAuth client ID shared across all Google MCP servers */
+  GOOGLE_MCP_CLIENT_ID: string,
+  /** Google OAuth client secret shared across all Google MCP servers */
+  GOOGLE_MCP_CLIENT_SECRET: string,
+  /** Signing key for mcp-auth-wrapper token encryption */
+  MCP_AUTH_WRAPPER_SECRET: string,
 }

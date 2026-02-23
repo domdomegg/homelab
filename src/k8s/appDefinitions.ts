@@ -1,6 +1,7 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
+  starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -271,7 +272,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'hass-oidc-provider',
-        image: 'ghcr.io/domdomegg/hass-oidc-provider',
+        image: 'ghcr.io/domdomegg/hass-oidc-provider:latest@sha256:d6f00d0418be30621781794f56c1b2be54c4d663e2a4f583f4bebcb75f883390',
         env: [{
           name: 'HASS_OIDC_CONFIG',
           value: JSON.stringify({
@@ -315,6 +316,125 @@ export const apps: AppDefinition[] = [
       ],
     },
     ingress: { host: `puregym.${env.BASE_DOMAIN}`, auth: false },
+  },
+
+  // Google MCP servers (native OAuth to Google)
+  ...([
+    'gmail',
+    'google-cal',
+    'google-contacts',
+    'google-documents',
+    'google-drive',
+    'google-maps-places',
+    'google-sheets',
+  ]).map((name) => ({
+    name: `${name}-mcp`,
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: `${name}-mcp`,
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['npx', '-y', `${name}-mcp`],
+        env: [
+          { name: 'MCP_TRANSPORT', value: 'http' },
+          { name: 'GOOGLE_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID },
+          { name: 'GOOGLE_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET },
+          { name: 'MCP_BASE_URL', value: `https://${name}.mcp.${env.BASE_DOMAIN}` },
+        ],
+      }],
+    },
+    ingress: { host: `${name}.mcp.${env.BASE_DOMAIN}`, auth: false },
+  })),
+
+  // Starling Bank MCP (via mcp-auth-wrapper + hass-oidc-provider)
+  {
+    name: 'starling-bank-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'starling-bank-mcp',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:31d78cb6ffe1af232b077ce0038e642e488a1465f16d89c38339b812f0d7f80d',
+        env: [{
+          name: 'MCP_AUTH_WRAPPER_CONFIG',
+          value: JSON.stringify({
+            command: ['npx', '-y', 'starling-bank-mcp'],
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            envPerUser: [
+              { name: 'STARLING_BANK_ACCESS_TOKEN', label: 'Starling Bank Access Token', secret: true },
+            ],
+            storage: '/app/data/mcp.sqlite',
+            issuerUrl: `https://starling-bank.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_AUTH_WRAPPER_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: starlingBankMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `starling-bank.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
+  // OpenFoodFacts MCP (via mcp-auth-wrapper + hass-oidc-provider)
+  {
+    name: 'openfoodfacts-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'openfoodfacts-mcp',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:31d78cb6ffe1af232b077ce0038e642e488a1465f16d89c38339b812f0d7f80d',
+        env: [{
+          name: 'MCP_AUTH_WRAPPER_CONFIG',
+          value: JSON.stringify({
+            command: ['npx', '-y', 'openfoodfacts-mcp'],
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            envPerUser: [
+              { name: 'OFF_USER_AGENT', label: 'User Agent (e.g. MyApp/1.0 (email@example.com))' },
+              { name: 'OFF_USER_ID', label: 'OpenFoodFacts Username (optional)' },
+              { name: 'OFF_PASSWORD', label: 'OpenFoodFacts Password (optional)', secret: true },
+            ],
+            storage: '/app/data/mcp.sqlite',
+            issuerUrl: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_AUTH_WRAPPER_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: openfoodfactsMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `openfoodfacts.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
+  // Barcode Scanner MCP (no auth, direct HTTP)
+  {
+    name: 'barcode-scanner-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'barcode-scanner-mcp',
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['npx', '-y', 'barcode-scanner-mcp'],
+        env: [
+          { name: 'MCP_TRANSPORT', value: 'http' },
+        ],
+      }],
+    },
+    ingress: { host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 ];
 
