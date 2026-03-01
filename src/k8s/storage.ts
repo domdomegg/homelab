@@ -231,9 +231,9 @@ export const starlingBankMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('sta
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
-export const mcpGatewayDataPvc = new k8s.core.v1.PersistentVolumeClaim('mcp-gateway-data-pvc', {
+export const mcpAggregatorDataPvc = new k8s.core.v1.PersistentVolumeClaim('mcp-aggregator-data-pvc', {
   metadata: {
-    name: 'mcp-gateway-data-pvc',
+    name: 'mcp-aggregator-data-pvc',
     annotations: {
       'pulumi.com/skipAwait': 'true',
     },

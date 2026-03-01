@@ -1,7 +1,7 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
-  mcpGatewayDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
+  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -489,7 +489,7 @@ export const apps: AppDefinition[] = [
             ],
             storage: '/app/data/mcp-aggregator.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
-            secret: env.MCP_GATEWAY_SECRET,
+            secret: env.MCP_AGGREGATOR_SECRET,
           }),
         }],
         volumeMounts: [{
@@ -500,7 +500,7 @@ export const apps: AppDefinition[] = [
       volumes: [{
         name: 'mcp-data-volume',
         persistentVolumeClaim: {
-          claimName: mcpGatewayDataPvc.metadata.name,
+          claimName: mcpAggregatorDataPvc.metadata.name,
         },
       }],
     },
