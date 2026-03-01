@@ -246,7 +246,7 @@ export const mcpAggregatorDataPvc = new k8s.core.v1.PersistentVolumeClaim('mcp-a
       },
     },
   },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true, aliases: [{ name: 'mcp-gateway-data-pvc' }] });
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
 export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('openfoodfacts-mcp-data-pvc', {
   metadata: {
