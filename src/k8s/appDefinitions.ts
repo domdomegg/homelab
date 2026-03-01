@@ -458,20 +458,20 @@ export const apps: AppDefinition[] = [
     ingress: { host: `tool-sandbox.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
-  // MCP Gateway (aggregates all upstream MCP servers behind a single OAuth endpoint)
+  // MCP Aggregator (aggregates all upstream MCP servers behind a single OAuth endpoint)
   {
-    name: 'mcp-gateway',
+    name: 'mcp-aggregator',
     targetPort: 3000,
     spec: {
       containers: [{
-        name: 'mcp-gateway',
-        image: 'ghcr.io/domdomegg/mcp-gateway:1.1.1@sha256:714f218854b59b663b4282794397626f1b0958709c107426c99792ae54bb85e5',
+        name: 'mcp-aggregator',
+        image: 'ghcr.io/domdomegg/mcp-aggregator:2.0.1@sha256:990a63a45a29a5a7258202c2803f8ac8e5717fa90cd4dce1afb8580d0decc3ea',
         env: [{
-          name: 'MCP_GATEWAY_CONFIG',
+          name: 'MCP_AGGREGATOR_CONFIG',
           value: JSON.stringify({
             auth: {
               issuer: `https://oidc.${env.BASE_DOMAIN}`,
-              clientId: 'mcp-gateway',
+              clientId: 'mcp-aggregator',
             },
             upstreams: [
               { name: 'gmail', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp` },
@@ -487,7 +487,7 @@ export const apps: AppDefinition[] = [
               { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
               { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
             ],
-            storage: '/app/data/mcp-gateway.sqlite',
+            storage: '/app/data/mcp-aggregator.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
             secret: env.MCP_GATEWAY_SECRET,
           }),
