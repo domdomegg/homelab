@@ -4,7 +4,13 @@ import { provider } from './provider';
 import { ingress } from './ingress';
 import env from '../env/prod';
 
+// Temporary rename map: after successful deploy, remove these entries
+const renames: Record<string, string> = {
+  'mcp-aggregator': 'mcp-gateway',
+};
+
 apps.forEach((app) => {
+  const oldName = renames[app.name];
   const labels = { app: app.name };
   const deployment = new k8s.apps.v1.Deployment(`${app.name}-deployment`, {
     metadata: {
@@ -18,7 +24,7 @@ apps.forEach((app) => {
         spec: app.spec,
       },
     },
-  }, { provider });
+  }, { provider, ...(oldName && { aliases: [{ name: `${oldName}-deployment` }] }) });
 
   if (app.targetPort) {
     const service = new k8s.core.v1.Service(`${app.name}-svc`, {
@@ -35,7 +41,7 @@ apps.forEach((app) => {
       metadata: {
         name: `${app.name}-svc`,
       },
-    }, { provider, dependsOn: [deployment] });
+    }, { provider, dependsOn: [deployment], ...(oldName && { aliases: [{ name: `${oldName}-svc` }] }) });
 
     if (app.ingress) {
       new k8s.networking.v1.Ingress(`${app.name}-ingress`, {
@@ -73,7 +79,7 @@ apps.forEach((app) => {
             },
           })),
         },
-      }, { provider, dependsOn: [ingress] });
+      }, { provider, dependsOn: [ingress], ...(oldName && { aliases: [{ name: `${oldName}-ingress` }] }) });
     }
   }
 });
