@@ -15,6 +15,7 @@ const env: Env = {
   GOOGLE_MCP_CLIENT_ID: '',
   GOOGLE_MCP_CLIENT_SECRET: '',
   MCP_AUTH_WRAPPER_SECRET: '',
+  MCP_GATEWAY_SECRET: '',
 };
 
 export default env;

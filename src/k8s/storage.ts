@@ -231,6 +231,23 @@ export const starlingBankMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('sta
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+export const mcpGatewayDataPvc = new k8s.core.v1.PersistentVolumeClaim('mcp-gateway-data-pvc', {
+  metadata: {
+    name: 'mcp-gateway-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
 export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('openfoodfacts-mcp-data-pvc', {
   metadata: {
     name: 'openfoodfacts-mcp-data-pvc',

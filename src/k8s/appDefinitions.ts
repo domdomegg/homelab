@@ -1,7 +1,7 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
-  starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
+  mcpGatewayDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -435,6 +435,53 @@ export const apps: AppDefinition[] = [
       }],
     },
     ingress: { host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
+  // MCP Gateway (aggregates all upstream MCP servers behind a single OAuth endpoint)
+  {
+    name: 'mcp-gateway',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'mcp-gateway',
+        image: 'ghcr.io/domdomegg/mcp-gateway:latest',
+        env: [{
+          name: 'MCP_GATEWAY_CONFIG',
+          value: JSON.stringify({
+            auth: {
+              issuer: `https://oidc.${env.BASE_DOMAIN}`,
+              clientId: 'mcp-gateway',
+            },
+            upstreams: [
+              { name: 'gmail', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-cal', url: `https://google-cal.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-contacts', url: `https://google-contacts.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-documents', url: `https://google-documents.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-drive', url: `https://google-drive.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-maps-places', url: `https://google-maps-places.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-sheets', url: `https://google-sheets.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
+            ],
+            storage: '/app/data/mcp-gateway.sqlite',
+            issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_GATEWAY_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: mcpGatewayDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 ];
 

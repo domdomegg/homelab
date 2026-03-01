@@ -23,4 +23,6 @@ export interface Env {
   GOOGLE_MCP_CLIENT_SECRET: string,
   /** Signing key for mcp-auth-wrapper token encryption */
   MCP_AUTH_WRAPPER_SECRET: string,
+  /** Secret for mcp-gateway AES-256-GCM sealed tokens */
+  MCP_GATEWAY_SECRET: string,
 }
