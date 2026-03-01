@@ -353,7 +353,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'starling-bank-mcp',
-        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:31d78cb6ffe1af232b077ce0038e642e488a1465f16d89c38339b812f0d7f80d',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:fd2fb6d3c952349423b3dfac2c1bb4ecc18cadbe0b37d0c842d6570506695453',
         env: [{
           name: 'MCP_AUTH_WRAPPER_CONFIG',
           value: JSON.stringify({
@@ -389,7 +389,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'openfoodfacts-mcp',
-        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:31d78cb6ffe1af232b077ce0038e642e488a1465f16d89c38339b812f0d7f80d',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:fd2fb6d3c952349423b3dfac2c1bb4ecc18cadbe0b37d0c842d6570506695453',
         env: [{
           name: 'MCP_AUTH_WRAPPER_CONFIG',
           value: JSON.stringify({
