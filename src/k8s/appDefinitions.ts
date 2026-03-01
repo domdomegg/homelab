@@ -444,7 +444,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'mcp-gateway',
-        image: 'ghcr.io/domdomegg/mcp-gateway:latest',
+        image: 'ghcr.io/domdomegg/mcp-gateway:latest@sha256:c2949779039f000a6e3c9767b76902924f9cf992505c154ef46b6e05206927da',
         env: [{
           name: 'MCP_GATEWAY_CONFIG',
           value: JSON.stringify({
@@ -463,6 +463,7 @@ export const apps: AppDefinition[] = [
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
             ],
             storage: '/app/data/mcp-gateway.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
