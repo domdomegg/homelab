@@ -437,6 +437,27 @@ export const apps: AppDefinition[] = [
     ingress: { host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // Tool Sandbox MCP (sandboxed code execution with access to gateway tools, proxies OAuth from gateway)
+  {
+    name: 'tool-sandbox-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'tool-sandbox-mcp',
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['npx', '-y', 'tool-sandbox-mcp'],
+        env: [{
+          name: 'TOOL_SANDBOX_MCP_CONFIG',
+          value: JSON.stringify({
+            upstream: `https://mcp.${env.BASE_DOMAIN}`,
+            issuerUrl: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}`,
+          }),
+        }],
+      }],
+    },
+    ingress: { host: `tool-sandbox.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // MCP Gateway (aggregates all upstream MCP servers behind a single OAuth endpoint)
   {
     name: 'mcp-gateway',
@@ -464,6 +485,7 @@ export const apps: AppDefinition[] = [
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
+              { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
             ],
             storage: '/app/data/mcp-gateway.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
