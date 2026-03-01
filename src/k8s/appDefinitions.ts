@@ -444,7 +444,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'mcp-gateway',
-        image: 'ghcr.io/domdomegg/mcp-gateway:latest@sha256:c2949779039f000a6e3c9767b76902924f9cf992505c154ef46b6e05206927da',
+        image: 'ghcr.io/domdomegg/mcp-gateway:1.1.1@sha256:714f218854b59b663b4282794397626f1b0958709c107426c99792ae54bb85e5',
         env: [{
           name: 'MCP_GATEWAY_CONFIG',
           value: JSON.stringify({
