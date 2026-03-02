@@ -458,6 +458,28 @@ export const apps: AppDefinition[] = [
     ingress: { host: `tool-sandbox.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // MCP Local Tunnel relay (bridges agent WebSocket connections to MCP endpoint)
+  {
+    name: 'mcp-local-tunnel',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'mcp-local-tunnel',
+        image: 'ghcr.io/domdomegg/mcp-local-tunnel:latest@sha256:b91ccce88b17019c68636aa6fe829f2a848256e1a76d26156665b4d870bcd80c',
+        env: [{
+          name: 'MCP_LOCAL_TUNNEL_CONFIG',
+          value: JSON.stringify({
+            mode: 'relay',
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            issuerUrl: `https://tunnel.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_LOCAL_TUNNEL_SECRET,
+          }),
+        }],
+      }],
+    },
+    ingress: { host: `tunnel.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // MCP Aggregator (aggregates all upstream MCP servers behind a single OAuth endpoint)
   {
     name: 'mcp-aggregator',
@@ -486,6 +508,7 @@ export const apps: AppDefinition[] = [
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
               { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
             ],
             storage: '/app/data/mcp-aggregator.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,

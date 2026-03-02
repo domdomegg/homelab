@@ -25,4 +25,6 @@ export interface Env {
   MCP_AUTH_WRAPPER_SECRET: string,
   /** Secret for mcp-aggregator AES-256-GCM sealed tokens */
   MCP_AGGREGATOR_SECRET: string,
+  /** Secret for mcp-local-tunnel AES-256-GCM sealed tokens */
+  MCP_LOCAL_TUNNEL_SECRET: string,
 }
