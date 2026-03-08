@@ -48,6 +48,7 @@ apps.forEach((app) => {
               'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
               'nginx.ingress.kubernetes.io/auth-url': `https://vouch.${env.BASE_DOMAIN}/validate`,
             } : {}),
+            'nginx.ingress.kubernetes.io/proxy-body-size': '20m',
           },
         },
         spec: {
