@@ -465,7 +465,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'mcp-local-tunnel',
-        image: 'ghcr.io/domdomegg/mcp-local-tunnel:latest@sha256:62b5b2b74ca01428d2cbef1d63ae055f4a3276771fa3091c9e942755c9dbd544',
+        image: 'ghcr.io/domdomegg/mcp-local-tunnel:latest@sha256:f99255ecadfbe2540948f05e63f1e16f98a219e715e884fbe650b98d5b2210f2',
         env: [{
           name: 'MCP_LOCAL_TUNNEL_CONFIG',
           value: JSON.stringify({
