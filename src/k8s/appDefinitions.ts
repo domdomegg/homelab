@@ -347,6 +347,8 @@ export const apps: AppDefinition[] = [
   })),
 
   // Starling Bank MCP (via mcp-auth-wrapper + hass-oidc-provider)
+  // NB: mcp-auth-wrapper runs as non-root `node` user (uid 1000). If using a PVC, you may need
+  // securityContext: { fsGroup: 1000 } on the pod spec for write access. See bluedotimpact/bluedot#2253.
   {
     name: 'starling-bank-mcp',
     targetPort: 3000,
@@ -383,6 +385,8 @@ export const apps: AppDefinition[] = [
   },
 
   // OpenFoodFacts MCP (via mcp-auth-wrapper + hass-oidc-provider)
+  // NB: mcp-auth-wrapper runs as non-root `node` user (uid 1000). If using a PVC, you may need
+  // securityContext: { fsGroup: 1000 } on the pod spec for write access. See bluedotimpact/bluedot#2253.
   {
     name: 'openfoodfacts-mcp',
     targetPort: 3000,
@@ -481,6 +485,8 @@ export const apps: AppDefinition[] = [
   },
 
   // MCP Aggregator (aggregates all upstream MCP servers behind a single OAuth endpoint)
+  // NB: mcp-aggregator runs as non-root `node` user (uid 1000). If using a PVC, you may need
+  // securityContext: { fsGroup: 1000 } on the pod spec for write access. See bluedotimpact/bluedot#2253.
   {
     name: 'mcp-aggregator',
     targetPort: 3000,
