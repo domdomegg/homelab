@@ -515,6 +515,7 @@ export const apps: AppDefinition[] = [
               { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
               { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287' },
             ],
             storage: '/app/data/mcp-aggregator.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
