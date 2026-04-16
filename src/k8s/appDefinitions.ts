@@ -493,7 +493,7 @@ export const apps: AppDefinition[] = [
     spec: {
       containers: [{
         name: 'mcp-aggregator',
-        image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:4cf3553c931c6307f5a68dd669259c8afd0dd065ae251f11029f53a00d3ecd3b',
+        image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:8e001bcb9cf4bad273f09064dc1f8af2001524f8f4d1a0286af6564f4a15ef54',
         env: [{
           name: 'MCP_AGGREGATOR_CONFIG',
           value: JSON.stringify({
