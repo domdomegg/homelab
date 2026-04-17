@@ -458,7 +458,7 @@ export const apps: AppDefinition[] = [
           {
             name: 'MCP_AUTH_WRAPPER_CONFIG',
             value: JSON.stringify({
-              command: ['uvx', 'ha-mcp'],
+              command: ['uvx', 'ha-mcp==7.3.0'],
               auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
               envPerUser: [
                 { name: 'HOMEASSISTANT_TOKEN', label: 'Home Assistant Long-Lived Access Token', secret: true },
