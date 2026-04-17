@@ -247,3 +247,20 @@ export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('op
     },
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+export const musicAssistantDataPvc = new k8s.core.v1.PersistentVolumeClaim('music-assistant-data-pvc', {
+  metadata: {
+    name: 'music-assistant-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '5Gi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });

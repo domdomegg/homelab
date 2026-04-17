@@ -1,7 +1,7 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
-  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
+  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, musicAssistantDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -255,6 +255,31 @@ export const apps: AppDefinition[] = [
         env: [{ name: 'TOTAL_STEPS', value: '5' }],
       }],
     },
+  },
+  {
+    name: 'music-assistant',
+    targetPort: 8095,
+    spec: {
+      // Required for mDNS/Zeroconf device discovery (Chromecast, Sonos, AirPlay, DLNA, Squeezebox)
+      // — multicast doesn't traverse the pod network namespace.
+      hostNetwork: true,
+      dnsPolicy: 'ClusterFirstWithHostNet',
+      containers: [{
+        name: 'music-assistant',
+        image: 'ghcr.io/music-assistant/server:latest@sha256:f25ab51703e81e18c90d023916d2bc7c8b1ef98b99503644fc12277bacc69ecd',
+        volumeMounts: [{
+          name: 'music-assistant-data-volume',
+          mountPath: '/data',
+        }],
+      }],
+      volumes: [{
+        name: 'music-assistant-data-volume',
+        persistentVolumeClaim: {
+          claimName: musicAssistantDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `music.${env.BASE_DOMAIN}`, auth: true },
   },
   {
     name: 'hass-oidc-provider',
