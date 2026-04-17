@@ -1,6 +1,6 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
-  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, piperDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
+  haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
@@ -242,28 +242,14 @@ export const apps: AppDefinition[] = [
     },
   },
   {
-    name: 'piper',
-    targetPort: 10200,
+    name: 'supertonic',
+    targetPort: 10220,
     spec: {
       containers: [{
-        name: 'piper',
-        image: 'rhasspy/wyoming-piper',
-        args: ['--voice', 'en_GB-jenny_dioco-medium', '--length-scale', '0.6'],
-        volumeMounts: [
-          {
-            name: 'piper-data-volume',
-            mountPath: '/data',
-          },
-        ],
+        name: 'supertonic',
+        image: 'ghcr.io/domdomegg/wyoming-supertonic:1.1.0@sha256:3dd3fbcde9b229f853df1db3fe94a100981382ad16332eb79ed867c638409aac',
+        env: [{ name: 'TOTAL_STEPS', value: '5' }],
       }],
-      volumes: [
-        {
-          name: 'piper-data-volume',
-          persistentVolumeClaim: {
-            claimName: piperDataPvc.metadata.name,
-          },
-        },
-      ],
     },
   },
   {
