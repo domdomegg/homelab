@@ -573,7 +573,7 @@ export const apps: AppDefinition[] = [
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp` },
-              { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287' },
             ],
