@@ -21,6 +21,10 @@ export const apps: AppDefinition[] = [
     name: 'ha',
     targetPort: 8123,
     spec: {
+      // Required for AF_BLUETOOTH sockets — they're scoped to the network namespace,
+      // so even a privileged pod can't open HCI sockets without host networking.
+      hostNetwork: true,
+      dnsPolicy: 'ClusterFirstWithHostNet',
       containers: [{
         name: 'ha',
         image: 'ghcr.io/home-assistant/home-assistant:stable@sha256:8848691147f01a6eee7753de2ade21b04d6168fcd2e2a7089f6f84e3b7b86960',
