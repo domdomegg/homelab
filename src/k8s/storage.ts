@@ -264,3 +264,20 @@ export const musicAssistantDataPvc = new k8s.core.v1.PersistentVolumeClaim('musi
     },
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-pvc', {
+  metadata: {
+    name: 'ha-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });

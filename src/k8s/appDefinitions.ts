@@ -1,7 +1,7 @@
 import { core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
-  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, musicAssistantDataPvc,
+  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -439,6 +439,51 @@ export const apps: AppDefinition[] = [
     ingress: { host: `openfoodfacts.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // Home Assistant MCP (via mcp-auth-wrapper + hass-oidc-provider, per-user HA tokens)
+  // NB: runs as root to install Python/uv at startup. Spawns ha-mcp (Python, stdio) via uvx.
+  {
+    name: 'ha-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'ha-mcp',
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['sh', '-c'],
+        args: [
+          'apk add --no-cache python3 py3-pip && python3 -m pip install --break-system-packages uv && exec npx -y mcp-auth-wrapper',
+        ],
+        securityContext: { runAsUser: 0 },
+        env: [
+          { name: 'HOMEASSISTANT_URL', value: 'http://ha-svc:80' },
+          {
+            name: 'MCP_AUTH_WRAPPER_CONFIG',
+            value: JSON.stringify({
+              command: ['uvx', 'ha-mcp'],
+              auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+              envPerUser: [
+                { name: 'HOMEASSISTANT_TOKEN', label: 'Home Assistant Long-Lived Access Token', secret: true },
+              ],
+              storage: '/app/data/mcp.sqlite',
+              issuerUrl: `https://ha.mcp.${env.BASE_DOMAIN}`,
+              secret: env.MCP_AUTH_WRAPPER_SECRET,
+            }),
+          },
+        ],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: haMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `ha.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // Barcode Scanner MCP (no auth, direct HTTP)
   {
     name: 'barcode-scanner-mcp',
@@ -527,7 +572,7 @@ export const apps: AppDefinition[] = [
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
-              { name: 'home-assistant', url: `https://${env.BASE_DOMAIN}/api/mcp` },
+              { name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tool-sandbox-mcp', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287' },
