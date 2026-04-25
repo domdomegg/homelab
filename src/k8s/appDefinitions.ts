@@ -1,4 +1,4 @@
-import { core } from '@pulumi/kubernetes/types/input';
+import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc, puregymGoogleWalletDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
@@ -88,6 +88,10 @@ export const apps: AppDefinition[] = [
   {
     name: 'zigbee2mqtt',
     targetPort: 8080,
+    // The Zigbee USB stick can only be held by one process at a time. With the default
+    // RollingUpdate, the new pod boots while the old still owns /dev/ttyUSB0 and crashes
+    // with "Cannot lock port" until the old pod terminates.
+    strategy: { type: 'Recreate' },
     spec: {
       containers: [{
         name: 'zigbee2mqtt',
@@ -602,5 +606,6 @@ interface AppDefinition {
   name: string,
   targetPort?: number,
   spec: core.v1.PodSpec,
+  strategy?: appsTypes.v1.DeploymentStrategy,
   ingress?: { host: string, auth: boolean },
 }

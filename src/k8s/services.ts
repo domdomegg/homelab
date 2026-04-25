@@ -13,6 +13,7 @@ apps.forEach((app) => {
     spec: {
       selector: { matchLabels: labels },
       replicas: 1,
+      ...(app.strategy ? { strategy: app.strategy } : {}),
       template: {
         metadata: { labels },
         spec: app.spec,
