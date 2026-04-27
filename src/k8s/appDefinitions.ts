@@ -256,7 +256,7 @@ export const apps: AppDefinition[] = [
       containers: [{
         name: 'supertonic',
         image: 'ghcr.io/domdomegg/wyoming-supertonic:1.1.0@sha256:3dd3fbcde9b229f853df1db3fe94a100981382ad16332eb79ed867c638409aac',
-        env: [{ name: 'TOTAL_STEPS', value: '5' }],
+        env: [{ name: 'TOTAL_STEPS', value: '20' }],
       }],
     },
   },
