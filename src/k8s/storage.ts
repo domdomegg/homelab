@@ -180,23 +180,6 @@ export const whisperDataPvc = new k8s.core.v1.PersistentVolumeClaim('whisper-dat
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
-export const puregymGoogleWalletDataPvc = new k8s.core.v1.PersistentVolumeClaim('puregym-google-wallet-data-pvc', {
-  metadata: {
-    name: 'puregym-google-wallet-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
-
 export const starlingBankMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('starling-bank-mcp-data-pvc', {
   metadata: {
     name: 'starling-bank-mcp-data-pvc',

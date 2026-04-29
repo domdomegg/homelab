@@ -7,9 +7,6 @@ const env: Env = {
   PORKBUN_API_KEY: 'pk1_abcdef',
   PORKBUN_SECRET_API_KEY: 'sk1_abcdef',
 
-  GOOGLE_SERVICE_ACCOUNT_JSON: '{}',
-  GOOGLE_WALLET_ISSUER_ID: '',
-
   HASS_OIDC_SIGNING_KEY: '{"kty":"EC","crv":"P-256","x":"...","y":"...","d":"..."}',
 
   GOOGLE_MCP_CLIENT_ID: '',
