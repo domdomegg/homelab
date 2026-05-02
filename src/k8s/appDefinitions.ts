@@ -578,6 +578,7 @@ export const apps: AppDefinition[] = [
               { name: 'google-sheets', url: `https://google-sheets.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
