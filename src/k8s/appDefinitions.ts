@@ -224,6 +224,14 @@ export const apps: AppDefinition[] = [
     },
     ingress: { host: `esphome.${env.BASE_DOMAIN}`, auth: true },
   },
+  // The int8 transducer 110m model files are pre-populated in the PVC manually.
+  // Upstream sherpa-onnx publishes only the fp32 transducer and CTC int8 (which doesn't
+  // load via wyoming-whisper's `from_transducer` call), so this int8 transducer was
+  // produced by running onnxruntime's `quantize_dynamic` (MatMul-only) on the fp32 ONNX
+  // files from HF `csukuangfj/sherpa-onnx-nemo-parakeet_tdt_transducer_110m-en-36000`,
+  // then `kubectl cp`'d into the whisper PVC. If the PVC is ever recreated, wyoming-whisper
+  // will hit its hardcoded URL and 404. Tracking upstream:
+  // https://github.com/k2-fsa/sherpa-onnx/issues/3570
   {
     name: 'whisper',
     targetPort: 10300,
@@ -231,7 +239,7 @@ export const apps: AppDefinition[] = [
       containers: [{
         name: 'whisper',
         image: 'rhasspy/wyoming-whisper:3.1.0@sha256:9501d2659eee83b6eead98d53842193e5fed011eda6c5b1c3ad36f3146b28fed',
-        args: ['--stt-library', 'sherpa', '--model', 'sherpa-onnx-nemo-parakeet-tdt-0.6b-v2-int8', '--language', 'en'],
+        args: ['--stt-library', 'sherpa', '--model', 'sherpa-onnx-nemo-parakeet_tdt_transducer_110m-en-36000-int8', '--language', 'en'],
         volumeMounts: [
           {
             name: 'whisper-data-volume',
