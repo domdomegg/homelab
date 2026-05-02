@@ -1,7 +1,7 @@
 import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
-  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
+  mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -410,6 +410,42 @@ export const apps: AppDefinition[] = [
     ingress: { host: `openfoodfacts.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // Olio Volunteer Hub MCP (via mcp-auth-wrapper, per-user _session_id cookie)
+  {
+    name: 'olio-volunteer-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'olio-volunteer-mcp',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:a96a63b845dfda088b8641b40239a7e2e52293eae2ea2672a23ded7b59bfa23b',
+        env: [{
+          name: 'MCP_AUTH_WRAPPER_CONFIG',
+          value: JSON.stringify({
+            command: ['npx', '-y', 'olio-volunteer-mcp'],
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            envPerUser: [
+              { name: 'OLIO_SESSION_ID', label: 'Olio Volunteer Hub _session_id cookie', secret: true },
+            ],
+            storage: '/app/data/mcp.sqlite',
+            issuerUrl: `https://olio.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_AUTH_WRAPPER_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: olioVolunteerMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `olio.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // Home Assistant MCP (via mcp-auth-wrapper + hass-oidc-provider, per-user HA tokens)
   // NB: runs as root to install Python/uv at startup. Spawns ha-mcp (Python, stdio) via uvx.
   {
@@ -566,6 +602,17 @@ export const apps: AppDefinition[] = [
       }],
     },
     ingress: { host: `mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+  {
+    name: 'pairdrop',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'pairdrop',
+        image: 'ghcr.io/schlagmichdoch/pairdrop:latest@sha256:c4b30977264a76e335740089e693a52a0d0d616330dec7f93c7b96beef7b4a02',
+      }],
+    },
+    ingress: { host: `pairdrop.${env.BASE_DOMAIN}`, auth: true },
   },
 ];
 

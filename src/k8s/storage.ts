@@ -231,6 +231,23 @@ export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('op
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+export const olioVolunteerMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('olio-volunteer-mcp-data-pvc', {
+  metadata: {
+    name: 'olio-volunteer-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
 export const musicAssistantDataPvc = new k8s.core.v1.PersistentVolumeClaim('music-assistant-data-pvc', {
   metadata: {
     name: 'music-assistant-data-pvc',
