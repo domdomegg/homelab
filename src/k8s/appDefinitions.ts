@@ -516,6 +516,25 @@ export const apps: AppDefinition[] = [
     ingress: { host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // Benepass MCP (no auth, direct HTTP — server is fully stateless, every tool call carries
+  // its own refresh_token. Deliberately not added to the public aggregator upstreams: the
+  // start_login tool would otherwise be a free OTP-spam endpoint pointed at Benepass users.)
+  {
+    name: 'benepass-mcp',
+    targetPort: 3000,
+    spec: {
+      containers: [{
+        name: 'benepass-mcp',
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['npx', '-y', 'benepass-mcp'],
+        env: [
+          { name: 'MCP_TRANSPORT', value: 'http' },
+        ],
+      }],
+    },
+    ingress: { host: `benepass.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // Tool Sandbox MCP (sandboxed code execution with access to gateway tools, proxies OAuth from gateway)
   {
     name: 'tool-sandbox-mcp',
