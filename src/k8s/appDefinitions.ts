@@ -517,8 +517,8 @@ export const apps: AppDefinition[] = [
   },
 
   // Benepass MCP (no auth, direct HTTP — server is fully stateless, every tool call carries
-  // its own refresh_token. Deliberately not added to the public aggregator upstreams: the
-  // start_login tool would otherwise be a free OTP-spam endpoint pointed at Benepass users.)
+  // its own refresh_token. Aggregator inclusion is fine because the aggregator is OIDC-gated;
+  // the direct ingress is the only public surface either way.)
   {
     name: 'benepass-mcp',
     targetPort: 3000,
@@ -606,6 +606,7 @@ export const apps: AppDefinition[] = [
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'benepass', url: `https://benepass.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
