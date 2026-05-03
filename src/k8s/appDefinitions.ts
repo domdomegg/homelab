@@ -257,15 +257,30 @@ export const apps: AppDefinition[] = [
       ],
     },
   },
+  // Replaces the bundled 326 MB kokoro-v1.0.onnx with the 92 MB convinteger
+  // quantization from taylorchu/kokoro-onnx. Same I/O graph, drop-in compatible
+  // with thewh1teagle/kokoro-onnx (which produced v1.0 from taylorchu's exports).
   {
-    name: 'supertonic',
-    targetPort: 10220,
+    name: 'kokoro',
+    targetPort: 10210,
     spec: {
-      containers: [{
-        name: 'supertonic',
-        image: 'ghcr.io/domdomegg/wyoming-supertonic:1.1.0@sha256:3dd3fbcde9b229f853df1db3fe94a100981382ad16332eb79ed867c638409aac',
-        env: [{ name: 'TOTAL_STEPS', value: '20' }],
+      initContainers: [{
+        name: 'download-model',
+        image: 'curlimages/curl:8.11.1@sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69',
+        command: ['sh', '-c'],
+        args: ['curl -fL -o /models/kokoro-v1.0.onnx https://github.com/taylorchu/kokoro-onnx/releases/download/v0.2.0/kokoro-quant-convinteger.onnx'],
+        volumeMounts: [{ name: 'kokoro-model', mountPath: '/models' }],
       }],
+      containers: [{
+        name: 'kokoro',
+        image: 'ghcr.io/relvacode/kokoro-wyoming:v2025.1.1@sha256:ff15cfb276045bd61662162d9f70c2596c1cb5acd345c3f62835b2aea397ba69',
+        volumeMounts: [{
+          name: 'kokoro-model',
+          mountPath: '/app/src/kokoro-v1.0.onnx',
+          subPath: 'kokoro-v1.0.onnx',
+        }],
+      }],
+      volumes: [{ name: 'kokoro-model', emptyDir: {} }],
     },
   },
   {
