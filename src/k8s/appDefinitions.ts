@@ -257,30 +257,18 @@ export const apps: AppDefinition[] = [
       ],
     },
   },
-  // Replaces the bundled 326 MB kokoro-v1.0.onnx with the 92 MB convinteger
-  // quantization from taylorchu/kokoro-onnx. Same I/O graph, drop-in compatible
-  // with thewh1teagle/kokoro-onnx (which produced v1.0 from taylorchu's exports).
+  // Microsoft Edge TTS via wyoming-edge-tts: a single Rust binary that speaks
+  // Wyoming on one side and Microsoft's free read-aloud WebSocket on the other.
+  // Replaces the prior wyoming_openai + travisvn/openai-edge-tts two-container
+  // stack — saves ~250 MB RSS, cuts time-to-first-audio by 3-6×.
   {
-    name: 'kokoro',
+    name: 'edge-tts',
     targetPort: 10210,
     spec: {
-      initContainers: [{
-        name: 'download-model',
-        image: 'curlimages/curl:8.11.1@sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69',
-        command: ['sh', '-c'],
-        args: ['curl -fL -o /models/kokoro-v1.0.onnx https://github.com/taylorchu/kokoro-onnx/releases/download/v0.2.0/kokoro-quant-convinteger.onnx'],
-        volumeMounts: [{ name: 'kokoro-model', mountPath: '/models' }],
-      }],
       containers: [{
-        name: 'kokoro',
-        image: 'ghcr.io/relvacode/kokoro-wyoming:v2025.1.1@sha256:ff15cfb276045bd61662162d9f70c2596c1cb5acd345c3f62835b2aea397ba69',
-        volumeMounts: [{
-          name: 'kokoro-model',
-          mountPath: '/app/src/kokoro-v1.0.onnx',
-          subPath: 'kokoro-v1.0.onnx',
-        }],
+        name: 'edge-tts',
+        image: 'ghcr.io/domdomegg/wyoming-edge-tts:0.1.2@sha256:5c85b741df52cfd0dc5c0befafec4810d2be8285cb7395de164d87d6125d60b7',
       }],
-      volumes: [{ name: 'kokoro-model', emptyDir: {} }],
     },
   },
   {
