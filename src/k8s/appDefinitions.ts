@@ -27,7 +27,7 @@ export const apps: AppDefinition[] = [
       dnsPolicy: 'ClusterFirstWithHostNet',
       containers: [{
         name: 'ha',
-        image: 'ghcr.io/home-assistant/home-assistant:stable@sha256:c1e5f0147f4cb51ccb05bb30b62a1269cc1bd48a6274792d3b38a77ab274dfd2',
+        image: 'ghcr.io/home-assistant/home-assistant:stable@sha256:d4fbec16196d5c8bedf32647f0ca7165f654d92a2e81f35a373508d3226cb867',
         // Necessary to access the Bluetooth
         securityContext: {
           privileged: true,
