@@ -600,6 +600,7 @@ export const apps: AppDefinition[] = [
             },
             upstreams: [
               { name: 'gmail', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'gmail-2', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-cal', url: `https://google-cal.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-contacts', url: `https://google-contacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-documents', url: `https://google-documents.mcp.${env.BASE_DOMAIN}/mcp` },
