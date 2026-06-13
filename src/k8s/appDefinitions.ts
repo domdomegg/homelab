@@ -281,7 +281,7 @@ export const apps: AppDefinition[] = [
       dnsPolicy: 'ClusterFirstWithHostNet',
       containers: [{
         name: 'music-assistant',
-        image: 'ghcr.io/music-assistant/server:latest@sha256:eef3ee7810d0e4702afa4a0ff55b10bbbfcaa16c98a277fe1b7f4cb6d5d426b4',
+        image: 'ghcr.io/music-assistant/server:latest@sha256:7e7269b20bafd7fabd1567bc0991fd30e894b05d205dacdaba8a2a3893982722',
         volumeMounts: [{
           name: 'music-assistant-data-volume',
           mountPath: '/data',
