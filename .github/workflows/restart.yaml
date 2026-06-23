@@ -1,0 +1,47 @@
+name: Restart service
+
+# Restarts a deployment in the cluster, e.g. so an MCP server running
+# `npx -y <package>` picks up the latest published package version.
+# Trigger from the Actions tab, or:
+#   gh workflow run restart.yaml -f service=google-drive-mcp
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Service name from appDefinitions.ts (e.g. google-drive-mcp)
+        required: true
+        type: string
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Validate service name
+        run: |
+          if ! echo "$SERVICE" | grep -Eq '^[a-z0-9-]+$'; then
+            echo "Invalid service name: $SERVICE"
+            exit 1
+          fi
+        env:
+          SERVICE: ${{ inputs.service }}
+      - name: Setup WARP for IPv6 connectivity
+        # Pinned to the v1.1 commit because this third-party action runs with the kubeconfig secret in scope
+        uses: fscarmen/warp-on-actions@e8640954f3b22c9e96e63f9ea9cae5df032f40d3
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG" > ~/.kube/config
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      - name: Restart deployment
+        run: |
+          if ! kubectl get deployment "$SERVICE-deployment" > /dev/null 2>&1; then
+            echo "Deployment $SERVICE-deployment not found. Available deployments:"
+            kubectl get deployments -o name | sed -e 's|deployment.apps/||' -e 's|-deployment$||'
+            exit 1
+          fi
+          kubectl rollout restart deployment "$SERVICE-deployment"
+          kubectl rollout status deployment "$SERVICE-deployment" --timeout=5m
+        env:
+          SERVICE: ${{ inputs.service }}

@@ -10,6 +10,18 @@ Automatically deployed via GitHub CI.
 
 Add a block to [`appDefinitions.ts`](./src/k8s/appDefinitions.ts).
 
+## Restarting a service
+
+Useful e.g. to get an MCP server running `npx -y <package>` to pick up the latest published version, without needing kubectl access.
+
+Run the [Restart service workflow](https://github.com/domdomegg/homelab/actions/workflows/restart.yaml) from the Actions tab, or:
+
+```bash
+gh workflow run restart.yaml -f service=google-drive-mcp
+```
+
+The service name is the `name` from [`appDefinitions.ts`](./src/k8s/appDefinitions.ts).
+
 ## Local development
 
 1. Install Node.js
