@@ -281,3 +281,22 @@ export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-p
     },
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+// Credential store for the Google Workspace MCP (taylorwilsdon/google_workspace_mcp).
+// OAuth 2.1 multi-user mode persists each self-served user's Google tokens here.
+export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('google-workspace-mcp-data-pvc', {
+  metadata: {
+    name: 'google-workspace-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });

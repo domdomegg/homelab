@@ -2,6 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
+  googleWorkspaceMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -350,6 +351,48 @@ export const apps: AppDefinition[] = [
     ingress: { host: `${name}.mcp.${env.BASE_DOMAIN}`, auth: false },
   })),
 
+  // Google Workspace MCP (taylorwilsdon/google_workspace_mcp) — Python, runs via uvx.
+  // Single comprehensive server (Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks,
+  // Contacts, Chat, Apps Script) using its own OAuth 2.1 multi-user mode: each user self-serves
+  // a Google authorization via the /oauth2callback flow, tokens persisted per-user to the PVC.
+  // Reuses the shared GOOGLE_MCP OAuth client — the redirect URI
+  // https://google-workspace.mcp.${BASE_DOMAIN}/oauth2callback must be registered on that client.
+  // NB: runs as root to install Python/uv at startup (same pattern as ha-mcp).
+  {
+    name: 'google-workspace-mcp',
+    targetPort: 8000,
+    spec: {
+      containers: [{
+        name: 'google-workspace-mcp',
+        image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+        command: ['sh', '-c'],
+        args: [
+          'apk add --no-cache python3 py3-pip && python3 -m pip install --break-system-packages uv && exec uvx workspace-mcp --transport streamable-http --tool-tier complete',
+        ],
+        securityContext: { runAsUser: 0 },
+        env: [
+          { name: 'MCP_ENABLE_OAUTH21', value: 'true' },
+          { name: 'GOOGLE_OAUTH_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID },
+          { name: 'GOOGLE_OAUTH_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET },
+          { name: 'WORKSPACE_MCP_PORT', value: '8000' },
+          { name: 'WORKSPACE_EXTERNAL_URL', value: `https://google-workspace.mcp.${env.BASE_DOMAIN}` },
+          { name: 'WORKSPACE_MCP_CREDENTIALS_DIR', value: '/app/data/credentials' },
+        ],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: googleWorkspaceMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `google-workspace.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // Starling Bank MCP (via mcp-auth-wrapper + hass-oidc-provider)
   // NB: mcp-auth-wrapper runs as non-root `node` user (uid 1000). If copying this configuration and using a PVC, you may need
   // securityContext: { fsGroup: 1000 } on the pod spec for write access.
@@ -614,6 +657,7 @@ export const apps: AppDefinition[] = [
               { name: 'google-drive', url: `https://google-drive.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-maps-places', url: `https://google-maps-places.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-sheets', url: `https://google-sheets.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'google-workspace', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp` },
