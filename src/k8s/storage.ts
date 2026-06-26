@@ -282,6 +282,26 @@ export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-p
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+// Per-user WhatsApp store for the WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork).
+// Holds store/<user>/ (whatsmeow session + message history) for each self-served user,
+// keyed on MCP_USER_ID. Sized for message-history sync across a couple of accounts.
+export const whatsappMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('whatsapp-mcp-data-pvc', {
+  metadata: {
+    name: 'whatsapp-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '5Gi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
 // Credential store for the Google Workspace MCP (taylorwilsdon/google_workspace_mcp).
 // OAuth 2.1 multi-user mode persists each self-served user's Google tokens here.
 export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('google-workspace-mcp-data-pvc', {
