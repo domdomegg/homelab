@@ -296,6 +296,13 @@ export const apps: AppDefinition[] = [
     },
     ingress: { host: `music.${env.BASE_DOMAIN}`, auth: true },
   },
+
+  // ── MCP gateway ──
+  // Auth principle for every MCP server behind the aggregator: per-person self-serve auth.
+  // Each user authorizes their own account through the OAuth flow (or supplies their own
+  // per-user token via the auth wrapper) — we never hardcode shared/per-user credentials,
+  // and never put user credentials in a Pulumi secret. App-level OAuth client id/secret is
+  // fine; user-identifying tokens must be self-served, not provisioned by us.
   {
     name: 'hass-oidc-provider',
     targetPort: 3001,
