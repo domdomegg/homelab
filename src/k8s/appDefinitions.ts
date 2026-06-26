@@ -658,6 +658,9 @@ export const apps: AppDefinition[] = [
               { name: 'google-maps-places', url: `https://google-maps-places.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-sheets', url: `https://google-sheets.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'google-workspace', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp` },
+              // Second registration of the same server: a distinct aggregator session so one
+              // person can authorize a second Google account in parallel (cf. gmail/gmail-2).
+              { name: 'google-workspace-2', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp` },
