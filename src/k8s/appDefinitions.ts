@@ -554,7 +554,7 @@ export const apps: AppDefinition[] = [
 
   // WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork; personal account via whatsmeow bridge).
   // The combined image bundles mcp-auth-wrapper, which gates access via hass-oidc-provider and
-  // spawns one combined per-user stdio server (entrypoint-combined.sh) per authenticated user.
+  // spawns one combined per-user stdio server (run_server.py) per authenticated user.
   // Each user gets their own store/<MCP_USER_ID>/ (whatsmeow session + history) and a private
   // loopback bridge — full isolation behind the shared aggregator. Onboard via the get_setup_qr
   // tool (scan QR in WhatsApp > Linked Devices). Single-account-per-user; unofficial API (ban risk).
@@ -570,7 +570,7 @@ export const apps: AppDefinition[] = [
         env: [{
           name: 'MCP_AUTH_WRAPPER_CONFIG',
           value: JSON.stringify({
-            command: ['/app/entrypoint-combined.sh'],
+            command: ['python', '/app/whatsapp-mcp-server/run_server.py'],
             auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
             storage: '/app/data/mcp.sqlite',
             issuerUrl: `https://whatsapp.mcp.${env.BASE_DOMAIN}`,
