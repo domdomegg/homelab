@@ -282,6 +282,23 @@ export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-p
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+export const airtableMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('airtable-mcp-data-pvc', {
+  metadata: {
+    name: 'airtable-mcp-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '100Mi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
 // Per-user WhatsApp store for the WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork).
 // Holds store/<user>/ (whatsmeow session + message history) for each self-served user,
 // keyed on MCP_USER_ID. Sized for message-history sync across a couple of accounts.
