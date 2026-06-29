@@ -2,7 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
-  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc,
+  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -431,6 +431,45 @@ export const apps: AppDefinition[] = [
     ingress: { host: `starling-bank.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // Airtable MCP (domdomegg/airtable-mcp-server, via mcp-auth-wrapper + hass-oidc-provider).
+  // Per-user Airtable personal access token. Read+write across the user's bases.
+  // NB: mcp-auth-wrapper runs as non-root `node` user (uid 1000); fsGroup set for PVC write access.
+  {
+    name: 'airtable-mcp',
+    targetPort: 3000,
+    spec: {
+      securityContext: { fsGroup: 1000 },
+      containers: [{
+        name: 'airtable-mcp',
+        image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:6f44f74fefe7406379f5e62c5348920f4fb919e2a9fb484c65e5e2a54eeaeb8b',
+        env: [{
+          name: 'MCP_AUTH_WRAPPER_CONFIG',
+          value: JSON.stringify({
+            command: ['npx', '-y', 'airtable-mcp-server'],
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            envPerUser: [
+              { name: 'AIRTABLE_API_KEY', label: 'Airtable Personal Access Token', secret: true },
+            ],
+            storage: '/app/data/mcp.sqlite',
+            issuerUrl: `https://airtable.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_AUTH_WRAPPER_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: airtableMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `airtable.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // OpenFoodFacts MCP (via mcp-auth-wrapper + hass-oidc-provider)
   // NB: mcp-auth-wrapper runs as non-root `node` user (uid 1000). If copying this configuration and using a PVC, you may need
   // securityContext: { fsGroup: 1000 } on the pod spec for write access.
@@ -702,6 +741,7 @@ export const apps: AppDefinition[] = [
               // person can authorize a second Google account in parallel (cf. gmail/gmail-2).
               { name: 'google-workspace-2', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'airtable', url: `https://airtable.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'benepass', url: `https://benepass.mcp.${env.BASE_DOMAIN}/mcp` },
