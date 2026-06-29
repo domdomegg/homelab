@@ -2,7 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
-  googleWorkspaceMcpDataPvc,
+  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -552,6 +552,46 @@ export const apps: AppDefinition[] = [
     ingress: { host: `ha.mcp.${env.BASE_DOMAIN}`, auth: false },
   },
 
+  // WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork; personal account via whatsmeow bridge).
+  // The combined image bundles mcp-auth-wrapper, which gates access via hass-oidc-provider and
+  // spawns one combined per-user stdio server (entrypoint-combined.sh) per authenticated user.
+  // Each user gets their own store/<MCP_USER_ID>/ (whatsmeow session + history) and a private
+  // loopback bridge — full isolation behind the shared aggregator. Onboard via the get_setup_qr
+  // tool (scan QR in WhatsApp > Linked Devices). Single-account-per-user; unofficial API (ban risk).
+  // NB: runs as non-root (uid 1000), so fsGroup is set for PVC write access.
+  {
+    name: 'whatsapp-mcp',
+    targetPort: 3000,
+    spec: {
+      securityContext: { fsGroup: 1000 },
+      containers: [{
+        name: 'whatsapp-mcp',
+        image: 'ghcr.io/domdomegg/whatsapp-mcp-extended:latest',
+        env: [{
+          name: 'MCP_AUTH_WRAPPER_CONFIG',
+          value: JSON.stringify({
+            command: ['/app/entrypoint-combined.sh'],
+            auth: { issuer: `https://oidc.${env.BASE_DOMAIN}` },
+            storage: '/app/data/mcp.sqlite',
+            issuerUrl: `https://whatsapp.mcp.${env.BASE_DOMAIN}`,
+            secret: env.MCP_AUTH_WRAPPER_SECRET,
+          }),
+        }],
+        volumeMounts: [{
+          name: 'mcp-data-volume',
+          mountPath: '/app/data',
+        }],
+      }],
+      volumes: [{
+        name: 'mcp-data-volume',
+        persistentVolumeClaim: {
+          claimName: whatsappMcpDataPvc.metadata.name,
+        },
+      }],
+    },
+    ingress: { host: `whatsapp.mcp.${env.BASE_DOMAIN}`, auth: false },
+  },
+
   // Barcode Scanner MCP (no auth, direct HTTP)
   {
     name: 'barcode-scanner-mcp',
@@ -667,6 +707,7 @@ export const apps: AppDefinition[] = [
               { name: 'benepass', url: `https://benepass.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp` },
+              { name: 'whatsapp', url: `https://whatsapp.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287' },
