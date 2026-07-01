@@ -337,3 +337,20 @@ export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('
     },
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+
+export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
+  metadata: {
+    name: 'adamcon-data-pvc',
+    annotations: {
+      'pulumi.com/skipAwait': 'true',
+    },
+  },
+  spec: {
+    accessModes: ['ReadWriteOnce'],
+    resources: {
+      requests: {
+        storage: '1Gi',
+      },
+    },
+  },
+}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
