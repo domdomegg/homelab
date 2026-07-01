@@ -42,6 +42,34 @@ The service name is the `name` from [`appDefinitions.ts`](./src/k8s/appDefinitio
 7. See step in manual setup notes below to get kubeconfig
 8. Deploy with `npm run deploy:prod`
 
+## Remote access / debugging connectivity
+
+`home.adamjones.me` has two very different faces:
+
+- **AAAA record** → the XPS directly. Works only from networks with IPv6.
+- **A record** → the Oracle Cloud relay (130.162.187.38) running
+  [ipv6-proxy](https://github.com/domdomegg/ipv6-proxy), which forwards
+  **only ports 80 and 443** to the XPS. Port 22 on the IPv4 address is the
+  *relay's own sshd* — this is why `ssh xps` from an IPv4-only network fails
+  with a scary host-key-changed warning: you're talking to the wrong machine,
+  not being MITM'd (probably).
+
+From an IPv4-only network:
+
+- **SSH to the XPS**: doesn't work even via the relay as a jump host — the
+  router firewall only pinholes 80/443/6443, and port 22 gets refused.
+  Fix by adding a router pinhole, or use the kubectl route below and a
+  privileged pod with `nsenter -t 1 -m -u -i -n` for host access.
+- **kubectl**: port 6443 *is* pinholed, so tunnel through the relay:
+  ```sh
+  ssh -f -N -L '16443:[$(dig +short AAAA home.adamjones.me)]:6443' ubuntu@130.162.187.38
+  kubectl --server=https://127.0.0.1:16443 --tls-server-name=localhost get nodes
+  ```
+  (`--tls-server-name=localhost` because the apiserver cert's SANs don't
+  include home.adamjones.me.)
+- **Pulumi deploys** work over the same tunnel: write the server override
+  into a copy of your kubeconfig and run `KUBECONFIG=<copy> npm run deploy:prod`.
+
 ## Manual setup notes
 
 To get a kubernetes cluster that you can run this all on, we install Ubuntu server + k3s. Full instructions:
