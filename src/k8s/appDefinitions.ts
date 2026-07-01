@@ -794,6 +794,10 @@ export const apps: AppDefinition[] = [
         image: 'ghcr.io/domdomegg/adamcon:latest',
         imagePullPolicy: 'Always',
         env: [
+          // Next standalone binds to HOSTNAME, which k8s sets to the pod
+          // name (= the pod's IPv6 on this cluster) — leaving the IPv4
+          // service endpoint refusing connections. Bind both families.
+          { name: 'HOSTNAME', value: '::' },
           { name: 'APP_ORIGIN', value: `https://adamcon.${env.BASE_DOMAIN}` },
           { name: 'EMAIL_FROM', value: 'AdamCon <adamcon@adamjones.me>' },
           { name: 'AWS_REGION', value: 'eu-west-1' },
