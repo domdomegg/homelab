@@ -139,3 +139,11 @@ new k8s.networking.v1.Ingress('oidc-discovery-ingress', {
     }],
   },
 }, { provider, dependsOn: [ingress] });
+
+// The adamcon app's identity: AWS trusts tokens for this service account
+// (role arn:aws:iam::338337944728:role/adamcon, SES-send only).
+export const adamconServiceAccount = new k8s.core.v1.ServiceAccount('adamcon-sa', {
+  metadata: {
+    name: 'adamcon',
+  },
+}, { provider });

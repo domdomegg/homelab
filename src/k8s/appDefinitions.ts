@@ -2,7 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
-  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc,
+  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -781,6 +781,52 @@ export const apps: AppDefinition[] = [
       }],
     },
     ingress: { host: `pairdrop.${env.BASE_DOMAIN}`, auth: true },
+  },
+  {
+    name: 'adamcon',
+    targetPort: 3000,
+    // Single replica on a RWO volume: replace, don't roll
+    strategy: { type: 'Recreate' },
+    spec: {
+      serviceAccountName: 'adamcon',
+      containers: [{
+        name: 'adamcon',
+        image: 'ghcr.io/domdomegg/adamcon:latest',
+        imagePullPolicy: 'Always',
+        env: [
+          { name: 'APP_ORIGIN', value: `https://adamcon.${env.BASE_DOMAIN}` },
+          { name: 'EMAIL_FROM', value: 'AdamCon <adamcon@adamjones.me>' },
+          { name: 'AWS_REGION', value: 'eu-west-1' },
+          { name: 'AWS_ROLE_ARN', value: 'arn:aws:iam::338337944728:role/adamcon' },
+          { name: 'AWS_WEB_IDENTITY_TOKEN_FILE', value: '/var/run/secrets/aws/token' },
+        ],
+        volumeMounts: [
+          { name: 'adamcon-data-volume', mountPath: '/data' },
+          { name: 'aws-token', mountPath: '/var/run/secrets/aws', readOnly: true },
+        ],
+      }],
+      volumes: [
+        {
+          name: 'adamcon-data-volume',
+          persistentVolumeClaim: {
+            claimName: adamconDataPvc.metadata.name,
+          },
+        },
+        {
+          name: 'aws-token',
+          projected: {
+            sources: [{
+              serviceAccountToken: {
+                audience: 'sts.amazonaws.com',
+                expirationSeconds: 3600,
+                path: 'token',
+              },
+            }],
+          },
+        },
+      ],
+    },
+    ingress: { host: `adamcon.${env.BASE_DOMAIN}`, auth: false },
   },
 ];
 
