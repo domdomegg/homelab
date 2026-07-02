@@ -338,6 +338,41 @@ export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+// The cluster's OIDC discovery document, served by the oidc-discovery app so
+// AWS IAM can federate against service account tokens without exposing the
+// apiserver (which runs with --anonymous-auth=false anyway).
+//
+// Only the discovery document is static (it's derived from BASE_DOMAIN and
+// contains no key material); the JWKS it points at is fetched live from the
+// apiserver by the app's init container, so key rotation can't desync it.
+//
+// Requires the k3s apiserver to issue tokens with the public issuer:
+//   /etc/rancher/k3s/config.yaml:
+//     kube-apiserver-arg:
+//       - service-account-issuer=https://k8s-oidc.<BASE_DOMAIN>
+//       - service-account-issuer=https://kubernetes.default.svc.cluster.local
+export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-config', {
+  metadata: {
+    name: 'oidc-discovery-config',
+  },
+  data: {
+    'openid-configuration': JSON.stringify({
+      issuer: `https://k8s-oidc.${env.BASE_DOMAIN}`,
+      jwks_uri: `https://k8s-oidc.${env.BASE_DOMAIN}/openid/v1/jwks`,
+      response_types_supported: ['id_token'],
+      subject_types_supported: ['public'],
+      id_token_signing_alg_values_supported: ['RS256'],
+    }),
+    'nginx.conf': `server {
+  listen 80;
+  listen [::]:80;
+  default_type application/json;
+  root /data;
+}
+`,
+  },
+}, { provider });
+
 export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
   metadata: {
     name: 'adamcon-data-pvc',
