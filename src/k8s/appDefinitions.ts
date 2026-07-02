@@ -2,7 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
-  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc,
+  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, adamconServiceAccount, oidcDiscoveryConfigmap,
 } from './storage';
 import env from '../env/prod';
 
@@ -783,12 +783,49 @@ export const apps: AppDefinition[] = [
     ingress: { host: `pairdrop.${env.BASE_DOMAIN}`, auth: true },
   },
   {
+    // Serves the cluster's OIDC discovery documents (static copies, see
+    // oidcDiscoveryConfigmap in storage.ts) so AWS IAM can federate against
+    // service account tokens.
+    name: 'oidc-discovery',
+    targetPort: 80,
+    spec: {
+      containers: [{
+        name: 'nginx',
+        image: 'nginx:stable-alpine@sha256:0d3b80406a13a767339fbe2f41406d6c7da727ab89cf8fae399e81f780f814d1',
+        volumeMounts: [
+          { name: 'content', mountPath: '/data' },
+          { name: 'nginx-conf', mountPath: '/etc/nginx/conf.d' },
+        ],
+      }],
+      volumes: [
+        {
+          name: 'content',
+          configMap: {
+            name: oidcDiscoveryConfigmap.metadata.name,
+            items: [
+              { key: 'openid-configuration', path: '.well-known/openid-configuration' },
+              { key: 'jwks', path: 'openid/v1/jwks' },
+            ],
+          },
+        },
+        {
+          name: 'nginx-conf',
+          configMap: {
+            name: oidcDiscoveryConfigmap.metadata.name,
+            items: [{ key: 'nginx.conf', path: 'default.conf' }],
+          },
+        },
+      ],
+    },
+    ingress: { host: `k8s-oidc.${env.BASE_DOMAIN}`, auth: false },
+  },
+  {
     name: 'adamcon',
     targetPort: 3000,
     // Single replica on a RWO volume: replace, don't roll
     strategy: { type: 'Recreate' },
     spec: {
-      serviceAccountName: 'adamcon',
+      serviceAccountName: adamconServiceAccount.metadata.name,
       containers: [{
         name: 'adamcon',
         image: 'ghcr.io/domdomegg/adamcon:latest',

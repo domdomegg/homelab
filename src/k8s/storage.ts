@@ -338,6 +338,52 @@ export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
+// Static copies of the cluster's OIDC discovery document and JWKS (public
+// keys only), served by the oidc-discovery app so AWS IAM can federate
+// against service account tokens without exposing the apiserver (which runs
+// with --anonymous-auth=false anyway).
+//
+// The JWKS only changes if the cluster's service account signing key rotates
+// (in practice: on cluster rebuild). Regenerate it with:
+//   kubectl get --raw /openid/v1/jwks
+//
+// Requires the k3s apiserver to issue tokens with the public issuer:
+//   /etc/rancher/k3s/config.yaml:
+//     kube-apiserver-arg:
+//       - service-account-issuer=https://k8s-oidc.<BASE_DOMAIN>
+//       - service-account-issuer=https://kubernetes.default.svc.cluster.local
+export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-config', {
+  metadata: {
+    name: 'oidc-discovery-config',
+  },
+  data: {
+    'openid-configuration': JSON.stringify({
+      issuer: `https://k8s-oidc.${env.BASE_DOMAIN}`,
+      jwks_uri: `https://k8s-oidc.${env.BASE_DOMAIN}/openid/v1/jwks`,
+      response_types_supported: ['id_token'],
+      subject_types_supported: ['public'],
+      id_token_signing_alg_values_supported: ['RS256'],
+    }),
+    // kubectl get --raw /openid/v1/jwks (fetched 2026-07-02)
+    jwks: '{"keys":[{"use":"sig","kty":"RSA","kid":"jtdjbXhVrlw-OSK0Nurz8Jyjzlg-axoxLhOAvmnO2xA","alg":"RS256","n":"pmBPzqRdRWeug5Ndys52aOuKebbTi2WxqOvAqj161oBUlgB3_naVYwPnSQSdFY1BM816l2WdBjMVwCgP2CoOqXlhKQkD4aVXlzMMI260tSAW0N5AOh4uf9jbsxWvW6Af1g3xT7r5mmpsbxNsa1pm8pve4UohxsR80ouGlT79fdOy64Z8SyYK8LiObwpdsMG0tGMlUKiRNumu70CuJz6nJ2WY-XpbZC0s02WVHmDmKtecjOK-JcUjkRua-dpTlE6Plk2CzVZAg-PPMd1DwVw-tn_B8U1NBFCh088fDn39bWCG72XTv3mJ8p8i6OrNeALtokG-A5JUSWpISM11b2nvyw","e":"AQAB"}]}',
+    'nginx.conf': `server {
+  listen 80;
+  listen [::]:80;
+  default_type application/json;
+  root /data;
+}
+`,
+  },
+}, { provider });
+
+// The adamcon app's identity: AWS trusts tokens for this service account
+// (role arn:aws:iam::338337944728:role/adamcon, SES-send only).
+export const adamconServiceAccount = new k8s.core.v1.ServiceAccount('adamcon-sa', {
+  metadata: {
+    name: 'adamcon',
+  },
+}, { provider });
+
 export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
   metadata: {
     name: 'adamcon-data-pvc',
