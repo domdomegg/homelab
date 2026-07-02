@@ -849,9 +849,10 @@ export const apps: AppDefinition[] = [
   },
   {
     // AWS trusts tokens for this app's generated service account, named
-    // 'adamcon' after the app (role arn:aws:iam::338337944728:role/adamcon,
-    // SES-send only) — renaming the app changes the token's sub claim and
-    // breaks that trust policy.
+    // 'adamcon' after the app (role homelab-app-adamcon, SES-send only; see
+    // src/aws/adamconRole.ts) — renaming the k8s app changes the token's sub
+    // claim and breaks that trust policy, so keep the app name 'adamcon' even
+    // though the AWS role is prefixed homelab-app-*.
     name: 'adamcon',
     targetPort: 3000,
     // Single replica on a RWO volume: replace, don't roll
@@ -869,7 +870,7 @@ export const apps: AppDefinition[] = [
           { name: 'APP_ORIGIN', value: `https://adamcon.${env.BASE_DOMAIN}` },
           { name: 'EMAIL_FROM', value: 'AdamCon <adamcon@adamjones.me>' },
           { name: 'AWS_REGION', value: 'eu-west-1' },
-          { name: 'AWS_ROLE_ARN', value: 'arn:aws:iam::338337944728:role/adamcon' },
+          { name: 'AWS_ROLE_ARN', value: 'arn:aws:iam::338337944728:role/homelab-app-adamcon' },
           { name: 'AWS_WEB_IDENTITY_TOKEN_FILE', value: '/var/run/secrets/aws/token' },
         ],
         volumeMounts: [
