@@ -2,7 +2,7 @@ import { apps as appsTypes, core } from '@pulumi/kubernetes/types/input';
 import {
   haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
   mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
-  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, adamconServiceAccount, oidcDiscoveryConfigmap,
+  googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
 } from './storage';
 import env from '../env/prod';
 
@@ -820,12 +820,15 @@ export const apps: AppDefinition[] = [
     ingress: { host: `k8s-oidc.${env.BASE_DOMAIN}`, auth: false },
   },
   {
+    // AWS trusts tokens for this app's generated service account, named
+    // 'adamcon' after the app (role arn:aws:iam::338337944728:role/adamcon,
+    // SES-send only) — renaming the app changes the token's sub claim and
+    // breaks that trust policy.
     name: 'adamcon',
     targetPort: 3000,
     // Single replica on a RWO volume: replace, don't roll
     strategy: { type: 'Recreate' },
     spec: {
-      serviceAccountName: adamconServiceAccount.metadata.name,
       containers: [{
         name: 'adamcon',
         image: 'ghcr.io/domdomegg/adamcon:latest',

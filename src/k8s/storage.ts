@@ -376,14 +376,6 @@ export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-
   },
 }, { provider });
 
-// The adamcon app's identity: AWS trusts tokens for this service account
-// (role arn:aws:iam::338337944728:role/adamcon, SES-send only).
-export const adamconServiceAccount = new k8s.core.v1.ServiceAccount('adamcon-sa', {
-  metadata: {
-    name: 'adamcon',
-  },
-}, { provider });
-
 export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
   metadata: {
     name: 'adamcon-data-pvc',
