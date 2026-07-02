@@ -149,6 +149,13 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     ```
 
     Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). We disable traefik because we use ingress-nginx instead.
+
+    The boot-relevant flags (`--disable=traefik`, `--flannel-ipv6-masq`) are persisted in `/etc/rancher/k3s/config.yaml` so they survive re-running the installer (see [Upgrading k3s](#upgrading-k3s) below):
+    ```yaml
+    disable:
+      - traefik
+    flannel-ipv6-masq: true
+    ```
 12. Set up Bluetooth for Home Assistant (see [official docs](https://www.home-assistant.io/integrations/bluetooth)). In short on my device it was:
     ```bash
     sudo apt install -y bluez
@@ -163,8 +170,8 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     ```
 13. Get the kubeconfig.
 
-    Find it in /etc/rancher/k3s/k3
-    You might want to tweak the `server: ` line to set the remote address, and potentially add `tls-server-name: kubernetes` to avoid certificate warnings.
+    Find it in `/etc/rancher/k3s/k3s.yaml`.
+    You might want to tweak the `server: ` line to set the remote address, and potentially add `tls-server-name: localhost` to avoid certificate warnings (this matches the flag used in the remote access section above).
 
     Or, on the external system you want to get the config, run:
     ```bash
@@ -172,6 +179,22 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     mkdir -p ~/.kube && ssh -t xps 'sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/\[::1]/\[$(ip route get 2606:4700:4700::1111 | awk '\''{print $11}'\'')]/g"' > ~/.kube/config
     ```
     This will substitute in the IP the system uses to reach the internet as the address to connect with kubectl.
+
+## Upgrading k3s
+
+k3s does not auto-update, so it needs upgrading manually (an EOL, internet-facing apiserver is a real risk). Kubernetes only supports **one minor version at a time**, so walk it up one minor per hop (e.g. `v1.33.x` → `v1.34.x` → …), verifying health between each:
+
+```bash
+# On the XPS. Because the flags live in config.yaml, the upgrade command needs NO cli flags:
+curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.34.9+k3s1 sh -s -
+```
+
+After each hop verify: `kubectl get nodes` is `Ready`, `kubectl get servicecidr` shows the configured ranges (`fd7d:4ce0:5b35:2::/112` + `10.43.0.0/16`, **not** a `fd00:...` default), the k3s log is free of `not within any service CIDR` errors, and pods return to Running. Latest per-minor version tags: `curl -s https://update.k3s.io/v1-release/channels`.
+
+Two gotchas, both learned the hard way:
+
+- **Keep the server flags in exactly one place.** Re-running the installer with only `INSTALL_K3S_VERSION` regenerates a bare systemd unit and drops any flags passed on the original install — which is why they now live in `config.yaml`. Don't *also* pass them on the upgrade command.
+- **Never put `cluster-cidr` / `service-cidr` in `config.yaml`.** They are creation-only (already baked into the datastore on an existing cluster). If both `config.yaml` and the systemd unit's `ExecStart` carry them, k3s concatenates the two sources → `--service-cluster-ip-range must not contain more than two entries` → k3s refuses to start. On k3s 1.33+ a mismatched/default service CIDR also makes the new ServiceCIDR controller reject every existing Service (`not within any service CIDR`) and crash-loop the apiserver.
 
 ### Useful server admin commands
 
