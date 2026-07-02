@@ -62,7 +62,7 @@ From an IPv4-only network:
   privileged pod with `nsenter -t 1 -m -u -i -n` for host access.
 - **kubectl**: port 6443 *is* pinholed, so tunnel through the relay:
   ```sh
-  ssh -f -N -L '16443:[$(dig +short AAAA home.adamjones.me)]:6443' ubuntu@130.162.187.38
+  ssh -f -N -L "16443:[$(dig +short AAAA home.adamjones.me)]:6443" ubuntu@130.162.187.38
   kubectl --server=https://127.0.0.1:16443 --tls-server-name=localhost get nodes
   ```
   (`--tls-server-name=localhost` because the apiserver cert's SANs don't
