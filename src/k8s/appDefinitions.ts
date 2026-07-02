@@ -783,17 +783,34 @@ export const apps: AppDefinition[] = [
     ingress: { host: `pairdrop.${env.BASE_DOMAIN}`, auth: true },
   },
   {
-    // Serves the cluster's OIDC discovery documents (static copies, see
+    // Serves the cluster's OIDC discovery documents (see
     // oidcDiscoveryConfigmap in storage.ts) so AWS IAM can federate against
     // service account tokens.
     name: 'oidc-discovery',
     targetPort: 80,
     spec: {
+      initContainers: [{
+        // Fetch the live JWKS from the apiserver, authenticated as this
+        // app's service account (the built-in
+        // system:service-account-issuer-discovery ClusterRole grants all
+        // service accounts read access). A point-in-time copy rather than a
+        // live proxy keeps the apiserver unreachable from the internet and
+        // the public-facing nginx credential-free; the signing key only
+        // rotates on cluster rebuild, which restarts this pod anyway.
+        name: 'fetch-jwks',
+        image: 'curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13',
+        command: ['sh', '-c', 'curl -sSf --cacert /var/run/secrets/apiserver/ca.crt -H "Authorization: Bearer $(cat /var/run/secrets/apiserver/token)" https://kubernetes.default.svc/openid/v1/jwks -o /jwks/jwks'],
+        volumeMounts: [
+          { name: 'jwks', mountPath: '/jwks' },
+          { name: 'apiserver-auth', mountPath: '/var/run/secrets/apiserver', readOnly: true },
+        ],
+      }],
       containers: [{
         name: 'nginx',
         image: 'nginx:stable-alpine@sha256:0d3b80406a13a767339fbe2f41406d6c7da727ab89cf8fae399e81f780f814d1',
         volumeMounts: [
           { name: 'content', mountPath: '/data' },
+          { name: 'jwks', mountPath: '/data/openid/v1' },
           { name: 'nginx-conf', mountPath: '/etc/nginx/conf.d' },
         ],
       }],
@@ -804,7 +821,18 @@ export const apps: AppDefinition[] = [
             name: oidcDiscoveryConfigmap.metadata.name,
             items: [
               { key: 'openid-configuration', path: '.well-known/openid-configuration' },
-              { key: 'jwks', path: 'openid/v1/jwks' },
+            ],
+          },
+        },
+        { name: 'jwks', emptyDir: {} },
+        // Apiserver credentials for the init container only — the nginx
+        // container never sees them.
+        {
+          name: 'apiserver-auth',
+          projected: {
+            sources: [
+              { serviceAccountToken: { path: 'token', expirationSeconds: 600 } },
+              { configMap: { name: 'kube-root-ca.crt', items: [{ key: 'ca.crt', path: 'ca.crt' }] } },
             ],
           },
         },

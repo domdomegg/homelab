@@ -338,14 +338,13 @@ export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('
   },
 }, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
 
-// Static copies of the cluster's OIDC discovery document and JWKS (public
-// keys only), served by the oidc-discovery app so AWS IAM can federate
-// against service account tokens without exposing the apiserver (which runs
-// with --anonymous-auth=false anyway).
+// The cluster's OIDC discovery document, served by the oidc-discovery app so
+// AWS IAM can federate against service account tokens without exposing the
+// apiserver (which runs with --anonymous-auth=false anyway).
 //
-// The JWKS only changes if the cluster's service account signing key rotates
-// (in practice: on cluster rebuild). Regenerate it with:
-//   kubectl get --raw /openid/v1/jwks
+// Only the discovery document is static (it's derived from BASE_DOMAIN and
+// contains no key material); the JWKS it points at is fetched live from the
+// apiserver by the app's init container, so key rotation can't desync it.
 //
 // Requires the k3s apiserver to issue tokens with the public issuer:
 //   /etc/rancher/k3s/config.yaml:
@@ -364,8 +363,6 @@ export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-
       subject_types_supported: ['public'],
       id_token_signing_alg_values_supported: ['RS256'],
     }),
-    // kubectl get --raw /openid/v1/jwks (fetched 2026-07-02)
-    jwks: '{"keys":[{"use":"sig","kty":"RSA","kid":"jtdjbXhVrlw-OSK0Nurz8Jyjzlg-axoxLhOAvmnO2xA","alg":"RS256","n":"pmBPzqRdRWeug5Ndys52aOuKebbTi2WxqOvAqj161oBUlgB3_naVYwPnSQSdFY1BM816l2WdBjMVwCgP2CoOqXlhKQkD4aVXlzMMI260tSAW0N5AOh4uf9jbsxWvW6Af1g3xT7r5mmpsbxNsa1pm8pve4UohxsR80ouGlT79fdOy64Z8SyYK8LiObwpdsMG0tGMlUKiRNumu70CuJz6nJ2WY-XpbZC0s02WVHmDmKtecjOK-JcUjkRua-dpTlE6Plk2CzVZAg-PPMd1DwVw-tn_B8U1NBFCh088fDn39bWCG72XTv3mJ8p8i6OrNeALtokG-A5JUSWpISM11b2nvyw","e":"AQAB"}]}',
     'nginx.conf': `server {
   listen 80;
   listen [::]:80;
