@@ -7,33 +7,26 @@
     "postinstall": "shx cp -n src/env/prod.template.ts src/env/prod.ts",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --watch",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "lint": "eslint",
     "build": "tsc --project tsconfig.build.json",
     "preview": "PULUMI_CONFIG_PASSPHRASE=unused pulumi preview --stack prod",
     "deploy:prod": "PULUMI_CONFIG_PASSPHRASE=unused pulumi up --stack prod --yes"
   },
   "dependencies": {
-    "@pulumi/aws": "^7.35.0",
-    "@pulumi/kubernetes": "^4.25.0",
-    "@pulumi/pulumi": "^3.217.1"
+    "@pulumi/aws": "^7.36.0",
+    "@pulumi/kubernetes": "^4.33.0",
+    "@pulumi/pulumi": "^3.251.0"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "^20.1.0",
-    "@tsconfig/strictest": "^2.0.2",
-    "eslint": "^8.56.0",
-    "eslint-config-domdomegg": "^1.2.3",
-    "shx": "^0.3.4",
-    "typescript": "^5.3.3",
-    "vitest": "^4.1.0"
+    "@tsconfig/node-lts": "^24.0.0",
+    "@tsconfig/strictest": "^2.0.8",
+    "eslint": "^9.0.0",
+    "eslint-config-domdomegg": "^2.0.9",
+    "shx": "^0.4.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   },
-  "eslintConfig": {
-    "extends": [
-      "eslint-config-domdomegg"
-    ],
-    "rules": {
-      "no-new": [
-        "off"
-      ]
-    }
+  "overrides": {
+    "brace-expansion": "^5.0.6"
   }
 }

@@ -1,31 +1,31 @@
 import * as k8s from '@pulumi/kubernetes';
-import { provider } from './provider';
+import {provider} from './provider';
 import env from '../env/prod';
 
 export const haDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-data-pvc', {
-  metadata: {
-    name: 'ha-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '50Gi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'ha-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '50Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const haConfigmap = new k8s.core.v1.ConfigMap('ha-configmap', {
-  metadata: {
-    name: 'ha-configmap',
-  },
-  data: {
-    // Keep DEFAULT CONFIG section up to date with https://github.com/home-assistant/core/blob/master/homeassistant/config.py#L89
-    'configuration.yaml': `# This file is managed from K8s
+	metadata: {
+		name: 'ha-configmap',
+	},
+	data: {
+		// Keep DEFAULT CONFIG section up to date with https://github.com/home-assistant/core/blob/master/homeassistant/config.py#L89
+		'configuration.yaml': `# This file is managed from K8s
 
 ### DEFAULT CONFIG ###
 
@@ -57,48 +57,48 @@ alexa:
       include_entity_globs:
         - "light.*_lights"
 `,
-  },
-}, { provider });
+	},
+}, {provider});
 
 export const mosquittoConfigmap = new k8s.core.v1.ConfigMap('mosquitto-configmap', {
-  metadata: {
-    name: 'mosquitto-configmap',
-  },
-  data: {
-    'mosquitto.conf': `# This file is managed from K8s
+	metadata: {
+		name: 'mosquitto-configmap',
+	},
+	data: {
+		'mosquitto.conf': `# This file is managed from K8s
 persistence true
 persistence_location /mosquitto/data/
 allow_anonymous true
 listener 1883 0.0.0.0
 listener 1883 ::1
 `,
-  },
-}, { provider });
+	},
+}, {provider});
 
 export const zigbee2mqttDataPvc = new k8s.core.v1.PersistentVolumeClaim('zigbee2mqtt-data-pvc', {
-  metadata: {
-    name: 'zigbee2mqtt-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'zigbee2mqtt-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const zigbee2mqttConfigmap = new k8s.core.v1.ConfigMap('zigbee2mqtt-configmap', {
-  metadata: {
-    name: 'zigbee2mqtt-configmap',
-  },
-  data: {
-    // Keep config up to date with https://github.com/Koenkk/zigbee2mqtt/blob/master/data/configuration.yaml
-    'configuration.yaml': `# This file is managed from K8s
+	metadata: {
+		name: 'zigbee2mqtt-configmap',
+	},
+	data: {
+		// Keep config up to date with https://github.com/Koenkk/zigbee2mqtt/blob/master/data/configuration.yaml
+		'configuration.yaml': `# This file is managed from K8s
 
 # Home Assistant integration (MQTT discovery)
 # https://www.zigbee2mqtt.io/guide/usage/integrations/home_assistant.html
@@ -125,15 +125,15 @@ frontend:
 devices: devices.yaml
 groups: groups.yaml
 `,
-  },
-}, { provider });
+	},
+}, {provider});
 
 export const ddclientConfigmap = new k8s.core.v1.ConfigMap('ddclient-configmap', {
-  metadata: {
-    name: 'ddclient-configmap',
-  },
-  data: {
-    'ddclient.conf': `# This file is managed from K8s
+	metadata: {
+		name: 'ddclient-configmap',
+	},
+	data: {
+		'ddclient.conf': `# This file is managed from K8s
 daemon=3600
 usev6=webv6,webv6=ipify-ipv6
 protocol=porkbun
@@ -143,200 +143,200 @@ apikey=${env.PORKBUN_API_KEY}
 secretapikey=${env.PORKBUN_SECRET_API_KEY}
 ${env.BASE_DOMAIN}
 `,
-  },
-}, { provider });
+	},
+}, {provider});
 
 export const esphomeDataPvc = new k8s.core.v1.PersistentVolumeClaim('esphome-data-pvc', {
-  metadata: {
-    name: 'esphome-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '10Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'esphome-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '10Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const whisperDataPvc = new k8s.core.v1.PersistentVolumeClaim('whisper-data-pvc', {
-  metadata: {
-    name: 'whisper-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '5Gi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'whisper-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '5Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const starlingBankMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('starling-bank-mcp-data-pvc', {
-  metadata: {
-    name: 'starling-bank-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'starling-bank-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const mcpAggregatorDataPvc = new k8s.core.v1.PersistentVolumeClaim('mcp-aggregator-data-pvc', {
-  metadata: {
-    name: 'mcp-aggregator-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'mcp-aggregator-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const openfoodfactsMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('openfoodfacts-mcp-data-pvc', {
-  metadata: {
-    name: 'openfoodfacts-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'openfoodfacts-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const olioVolunteerMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('olio-volunteer-mcp-data-pvc', {
-  metadata: {
-    name: 'olio-volunteer-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'olio-volunteer-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const musicAssistantDataPvc = new k8s.core.v1.PersistentVolumeClaim('music-assistant-data-pvc', {
-  metadata: {
-    name: 'music-assistant-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '5Gi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'music-assistant-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '5Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-pvc', {
-  metadata: {
-    name: 'ha-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'ha-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 export const airtableMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('airtable-mcp-data-pvc', {
-  metadata: {
-    name: 'airtable-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'airtable-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 // Per-user WhatsApp store for the WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork).
 // Holds store/<user>/ (whatsmeow session + message history) for each self-served user,
 // keyed on MCP_USER_ID. Sized for message-history sync across a couple of accounts.
 export const whatsappMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('whatsapp-mcp-data-pvc', {
-  metadata: {
-    name: 'whatsapp-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '5Gi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'whatsapp-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '5Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 // Credential store for the Google Workspace MCP (taylorwilsdon/google_workspace_mcp).
 // OAuth 2.1 multi-user mode persists each self-served user's Google tokens here.
 export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('google-workspace-mcp-data-pvc', {
-  metadata: {
-    name: 'google-workspace-mcp-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '100Mi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'google-workspace-mcp-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
 // The cluster's OIDC discovery document, served by the oidc-discovery app so
 // AWS IAM can federate against service account tokens without exposing the
@@ -352,40 +352,40 @@ export const googleWorkspaceMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('
 //       - service-account-issuer=https://k8s-oidc.<BASE_DOMAIN>
 //       - service-account-issuer=https://kubernetes.default.svc.cluster.local
 export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-config', {
-  metadata: {
-    name: 'oidc-discovery-config',
-  },
-  data: {
-    'openid-configuration': JSON.stringify({
-      issuer: `https://k8s-oidc.${env.BASE_DOMAIN}`,
-      jwks_uri: `https://k8s-oidc.${env.BASE_DOMAIN}/openid/v1/jwks`,
-      response_types_supported: ['id_token'],
-      subject_types_supported: ['public'],
-      id_token_signing_alg_values_supported: ['RS256'],
-    }),
-    'nginx.conf': `server {
+	metadata: {
+		name: 'oidc-discovery-config',
+	},
+	data: {
+		'openid-configuration': JSON.stringify({
+			issuer: `https://k8s-oidc.${env.BASE_DOMAIN}`,
+			jwks_uri: `https://k8s-oidc.${env.BASE_DOMAIN}/openid/v1/jwks`,
+			response_types_supported: ['id_token'],
+			subject_types_supported: ['public'],
+			id_token_signing_alg_values_supported: ['RS256'],
+		}),
+		'nginx.conf': `server {
   listen 80;
   listen [::]:80;
   default_type application/json;
   root /data;
 }
 `,
-  },
-}, { provider });
+	},
+}, {provider});
 
 export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
-  metadata: {
-    name: 'adamcon-data-pvc',
-    annotations: {
-      'pulumi.com/skipAwait': 'true',
-    },
-  },
-  spec: {
-    accessModes: ['ReadWriteOnce'],
-    resources: {
-      requests: {
-        storage: '1Gi',
-      },
-    },
-  },
-}, { provider, replaceOnChanges: ['*'], deleteBeforeReplace: true });
+	metadata: {
+		name: 'adamcon-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '1Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});

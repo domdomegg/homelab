@@ -1,99 +1,101 @@
 import * as k8s from '@pulumi/kubernetes';
-import { apps } from './appDefinitions';
-import { provider } from './provider';
-import { ingress } from './ingress';
+import {apps} from './appDefinitions';
+import {provider} from './provider';
+import {ingress} from './ingress';
 import env from '../env/prod';
 
 apps.forEach((app) => {
-  const labels = { app: app.name };
+	const labels = {app: app.name};
 
-  // Every app runs as its own service account so there's always a distinct,
-  // ready-made identity to hang RBAC grants, cloud federation trust policies
-  // (e.g. adamcon's AWS role), etc. off — rather than sharing 'default'.
-  const serviceAccount = new k8s.core.v1.ServiceAccount(`${app.name}-sa`, {
-    metadata: {
-      name: app.name,
-    },
-  }, { provider });
+	// Every app runs as its own service account so there's always a distinct,
+	// ready-made identity to hang RBAC grants, cloud federation trust policies
+	// (e.g. adamcon's AWS role), etc. off — rather than sharing 'default'.
+	const serviceAccount = new k8s.core.v1.ServiceAccount(`${app.name}-sa`, {
+		metadata: {
+			name: app.name,
+		},
+	}, {provider});
 
-  const deployment = new k8s.apps.v1.Deployment(`${app.name}-deployment`, {
-    metadata: {
-      name: `${app.name}-deployment`,
-    },
-    spec: {
-      selector: { matchLabels: labels },
-      replicas: 1,
-      ...(app.strategy ? { strategy: app.strategy } : {}),
-      template: {
-        metadata: { labels },
-        spec: {
-          serviceAccountName: serviceAccount.metadata.name,
-          // Identity without credentials: don't mount the k8s API token by
-          // default. Apps that need a token opt in, e.g. via a projected
-          // serviceAccountToken volume (unaffected by this setting) like
-          // adamcon's AWS one.
-          automountServiceAccountToken: false,
-          ...app.spec,
-        },
-      },
-    },
-  }, { provider });
+	const deployment = new k8s.apps.v1.Deployment(`${app.name}-deployment`, {
+		metadata: {
+			name: `${app.name}-deployment`,
+		},
+		spec: {
+			selector: {matchLabels: labels},
+			replicas: 1,
+			...(app.strategy ? {strategy: app.strategy} : {}),
+			template: {
+				metadata: {labels},
+				spec: {
+					serviceAccountName: serviceAccount.metadata.name,
+					// Identity without credentials: don't mount the k8s API token by
+					// default. Apps that need a token opt in, e.g. via a projected
+					// serviceAccountToken volume (unaffected by this setting) like
+					// adamcon's AWS one.
+					automountServiceAccountToken: false,
+					...app.spec,
+				},
+			},
+		},
+	}, {provider});
 
-  if (app.targetPort) {
-    const service = new k8s.core.v1.Service(`${app.name}-svc`, {
-      spec: {
-        type: 'ClusterIP',
-        selector: labels,
-        ipFamilyPolicy: 'RequireDualStack',
-        ports: [{
-          name: 'default',
-          port: 80,
-          targetPort: app.targetPort,
-        }],
-      },
-      metadata: {
-        name: `${app.name}-svc`,
-      },
-    }, { provider, dependsOn: [deployment] });
+	if (app.targetPort) {
+		const service = new k8s.core.v1.Service(`${app.name}-svc`, {
+			spec: {
+				type: 'ClusterIP',
+				selector: labels,
+				ipFamilyPolicy: 'RequireDualStack',
+				ports: [{
+					name: 'default',
+					port: 80,
+					targetPort: app.targetPort,
+				}],
+			},
+			metadata: {
+				name: `${app.name}-svc`,
+			},
+		}, {provider, dependsOn: [deployment]});
 
-    if (app.ingress) {
-      new k8s.networking.v1.Ingress(`${app.name}-ingress`, {
-        metadata: {
-          name: `${app.name}-ingress`,
-          annotations: {
-            'kubernetes.io/ingress.class': 'nginx',
-            'cert-manager.io/cluster-issuer': 'cert-manager-issuer',
-            ...(app.ingress.auth ? {
-              'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
-              'nginx.ingress.kubernetes.io/auth-url': `https://vouch.${env.BASE_DOMAIN}/validate`,
-            } : {}),
-            'nginx.ingress.kubernetes.io/proxy-body-size': '20m',
-          },
-        },
-        spec: {
-          tls: [{
-            hosts: [app.ingress.host],
-            secretName: `${app.name}-certificate`,
-          }],
-          rules: [app.ingress.host].map((host) => ({
-            host,
-            http: {
-              paths: [{
-                path: '/',
-                pathType: 'Prefix',
-                backend: {
-                  service: {
-                    name: service.metadata.name,
-                    port: {
-                      name: 'default',
-                    },
-                  },
-                },
-              }],
-            },
-          })),
-        },
-      }, { provider, dependsOn: [ingress] });
-    }
-  }
+		if (app.ingress) {
+			new k8s.networking.v1.Ingress(`${app.name}-ingress`, {
+				metadata: {
+					name: `${app.name}-ingress`,
+					annotations: {
+						'kubernetes.io/ingress.class': 'nginx',
+						'cert-manager.io/cluster-issuer': 'cert-manager-issuer',
+						...(app.ingress.auth
+							? {
+								'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
+								'nginx.ingress.kubernetes.io/auth-url': `https://vouch.${env.BASE_DOMAIN}/validate`,
+							}
+							: {}),
+						'nginx.ingress.kubernetes.io/proxy-body-size': '20m',
+					},
+				},
+				spec: {
+					tls: [{
+						hosts: [app.ingress.host],
+						secretName: `${app.name}-certificate`,
+					}],
+					rules: [app.ingress.host].map((host) => ({
+						host,
+						http: {
+							paths: [{
+								path: '/',
+								pathType: 'Prefix',
+								backend: {
+									service: {
+										name: service.metadata.name,
+										port: {
+											name: 'default',
+										},
+									},
+								},
+							}],
+						},
+					})),
+				},
+			}, {provider, dependsOn: [ingress]});
+		}
+	}
 });

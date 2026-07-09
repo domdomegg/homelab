@@ -1,5 +1,5 @@
 import * as k8s from '@pulumi/kubernetes';
-import { provider } from './provider';
+import {provider} from './provider';
 
 // RBAC for GitHub-Actions-federated CI. The apiserver is configured (via
 // /etc/rancher/k3s/github-oidc-auth.yaml) to trust GitHub OIDC tokens with
@@ -17,15 +17,15 @@ import { provider } from './provider';
 const CI_USERNAME = 'github:repo:domdomegg/homelab:ref:refs/heads/master';
 
 new k8s.rbac.v1.ClusterRoleBinding('github-ci-admin', {
-  metadata: { name: 'github-ci-admin' },
-  roleRef: {
-    apiGroup: 'rbac.authorization.k8s.io',
-    kind: 'ClusterRole',
-    name: 'cluster-admin',
-  },
-  subjects: [{
-    apiGroup: 'rbac.authorization.k8s.io',
-    kind: 'User',
-    name: CI_USERNAME,
-  }],
-}, { provider });
+	metadata: {name: 'github-ci-admin'},
+	roleRef: {
+		apiGroup: 'rbac.authorization.k8s.io',
+		kind: 'ClusterRole',
+		name: 'cluster-admin',
+	},
+	subjects: [{
+		apiGroup: 'rbac.authorization.k8s.io',
+		kind: 'User',
+		name: CI_USERNAME,
+	}],
+}, {provider});
