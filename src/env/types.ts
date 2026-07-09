@@ -1,25 +1,25 @@
-export interface Env {
-  STAGE: 'local' | 'prod',
+export type Env = {
+	STAGE: 'local' | 'prod';
 
-  /** @example home.adamjones.me */
-  BASE_DOMAIN: string,
+	/** @example home.adamjones.me */
+	BASE_DOMAIN: string;
 
-  /** @example pk1_abcdef */
-  PORKBUN_API_KEY: string,
-  /** @example sk1_abcdef */
-  PORKBUN_SECRET_API_KEY: string,
+	/** @example pk1_abcdef */
+	PORKBUN_API_KEY: string;
+	/** @example sk1_abcdef */
+	PORKBUN_SECRET_API_KEY: string;
 
-  /** ECDSA P-256 JWK signing key for hass-oidc-provider */
-  HASS_OIDC_SIGNING_KEY: string,
+	/** ECDSA P-256 JWK signing key for hass-oidc-provider */
+	HASS_OIDC_SIGNING_KEY: string;
 
-  /** Google OAuth client ID shared across all Google MCP servers */
-  GOOGLE_MCP_CLIENT_ID: string,
-  /** Google OAuth client secret shared across all Google MCP servers */
-  GOOGLE_MCP_CLIENT_SECRET: string,
-  /** Signing key for mcp-auth-wrapper token encryption */
-  MCP_AUTH_WRAPPER_SECRET: string,
-  /** Secret for mcp-aggregator AES-256-GCM sealed tokens */
-  MCP_AGGREGATOR_SECRET: string,
-  /** Secret for mcp-local-tunnel AES-256-GCM sealed tokens */
-  MCP_LOCAL_TUNNEL_SECRET: string,
-}
+	/** Google OAuth client ID shared across all Google MCP servers */
+	GOOGLE_MCP_CLIENT_ID: string;
+	/** Google OAuth client secret shared across all Google MCP servers */
+	GOOGLE_MCP_CLIENT_SECRET: string;
+	/** Signing key for mcp-auth-wrapper token encryption */
+	MCP_AUTH_WRAPPER_SECRET: string;
+	/** Secret for mcp-aggregator AES-256-GCM sealed tokens */
+	MCP_AGGREGATOR_SECRET: string;
+	/** Secret for mcp-local-tunnel AES-256-GCM sealed tokens */
+	MCP_LOCAL_TUNNEL_SECRET: string;
+};

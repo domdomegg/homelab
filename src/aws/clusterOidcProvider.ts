@@ -13,7 +13,7 @@ import * as aws from '@pulumi/aws';
 // `url` but the stored value has none; 'https://…' both validates and matches
 // the import (Pulumi normalizes), so it does NOT trigger a replacement.
 export const clusterOidcProvider = new aws.iam.OpenIdConnectProvider('cluster-oidc', {
-  url: 'https://k8s-oidc.home.adamjones.me',
-  clientIdLists: ['sts.amazonaws.com'],
-  thumbprintLists: ['ab9d0263244dd0326eb67015705a667e79cfe998'],
+	url: 'https://k8s-oidc.home.adamjones.me',
+	clientIdLists: ['sts.amazonaws.com'],
+	thumbprintLists: ['ab9d0263244dd0326eb67015705a667e79cfe998'],
 });
