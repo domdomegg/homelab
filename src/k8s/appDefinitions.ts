@@ -751,6 +751,7 @@ export const apps: AppDefinition[] = [
               { name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp` },
               { name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287' },
+              { name: 'posthog', url: 'https://mcp.posthog.com/mcp' },
             ],
             storage: '/app/data/mcp-aggregator.sqlite',
             issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,

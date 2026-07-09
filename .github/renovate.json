@@ -13,6 +13,12 @@
             "fileMatch": ["src/k8s/appDefinitions.ts"],
             "matchStrings": ["('|\\\")(?<depName>[a-z0-9-/.]*?):(?<currentValue>[a-z0-9-/.]*?)@(?<currentDigest>sha256:[0-9a-f]+?)('|\\\")"],
             "datasourceTemplate": "docker"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": ["src/k8s/.*\\.ts$"],
+            "matchStrings": ["renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\s+version: '(?<currentValue>[^']+)'"],
+            "versioningTemplate": "helm"
         }
     ],
     "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
