@@ -12,6 +12,10 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write   # mint the GitHub OIDC token used to auth to AWS + the cluster
+  contents: read
+
 jobs:
   restart:
     runs-on: ubuntu-latest
@@ -26,14 +30,34 @@ jobs:
         env:
           SERVICE: ${{ inputs.service }}
       - name: Setup WARP for IPv6 connectivity
-        # Pinned to the v1.1 commit because this third-party action runs with the kubeconfig secret in scope
-        uses: fscarmen/warp-on-actions@e8640954f3b22c9e96e63f9ea9cae5df032f40d3
-      - name: Configure kubeconfig
+        uses: fscarmen/warp-on-actions@v1.1
+      # AWS access via GitHub OIDC federation — no stored AWS keys.
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::338337944728:role/homelab-ci
+          aws-region: eu-west-1
+      # Build a kubeconfig that authenticates via a GitHub OIDC token instead of
+      # the old cluster-admin cert (KUBECONFIG secret). The apiserver trusts this
+      # repo's token (audience homelab-k8s) and maps it to a cluster-admin-bound
+      # user (see src/k8s/ciRbac.ts). CA + server are non-secret repo variables;
+      # tls-server-name=kubernetes because the cert's SANs don't include
+      # home.adamjones.me. Mirrors the auth in ci.yaml.
+      - name: Configure kubeconfig (OIDC)
         run: |
+          K8S_TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=homelab-k8s" | python3 -c 'import sys,json;print(json.load(sys.stdin)["value"])')
+
           mkdir -p ~/.kube
-          echo "$KUBECONFIG" > ~/.kube/config
+          kubectl config set-cluster homelab --server="$KUBE_SERVER" --tls-server-name=kubernetes >/dev/null
+          echo "$KUBE_CA_DATA" | base64 -d > /tmp/k8s-ca.crt
+          kubectl config set-cluster homelab --certificate-authority=/tmp/k8s-ca.crt --embed-certs=true >/dev/null
+          kubectl config set-credentials github-ci --token="$K8S_TOKEN" >/dev/null
+          kubectl config set-context homelab --cluster=homelab --user=github-ci >/dev/null
+          kubectl config use-context homelab >/dev/null
         env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+          KUBE_SERVER: ${{ vars.KUBE_SERVER }}
+          KUBE_CA_DATA: ${{ vars.KUBE_CA_DATA }}
       - name: Restart deployment
         run: |
           if ! kubectl get deployment "$SERVICE-deployment" > /dev/null 2>&1; then
