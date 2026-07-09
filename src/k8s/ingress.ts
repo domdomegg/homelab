@@ -9,6 +9,8 @@ const namespace = new k8s.core.v1.Namespace('ingress-nginx-namespace', {
 
 export const ingress = new k8s.helm.v3.Release('ingress-nginx', {
   chart: 'ingress-nginx',
+  // renovate: datasource=helm depName=ingress-nginx registryUrl=https://kubernetes.github.io/ingress-nginx
+  version: '4.15.1',
   repositoryOpts: {
     repo: 'https://kubernetes.github.io/ingress-nginx',
   },

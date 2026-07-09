@@ -10,6 +10,8 @@ const namespace = new k8s.core.v1.Namespace('cert-manager-namespace', {
 
 const helmRelease = new k8s.helm.v3.Release('cert-manager', {
   chart: 'cert-manager',
+  // renovate: datasource=helm depName=cert-manager registryUrl=https://charts.jetstack.io
+  version: 'v1.20.3',
   repositoryOpts: {
     repo: 'https://charts.jetstack.io',
   },
@@ -24,7 +26,6 @@ new k8s.apiextensions.CustomResource('cert-manager-issuer', {
   kind: 'ClusterIssuer',
   metadata: {
     name: 'cert-manager-issuer',
-    namespace: 'cert-manager',
   },
   spec: {
     acme: {
