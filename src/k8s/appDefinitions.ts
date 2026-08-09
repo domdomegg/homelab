@@ -748,6 +748,11 @@ export const apps: AppDefinition[] = [
 							{name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp`},
 							{name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp`},
 							{name: 'whatsapp', url: `https://whatsapp.mcp.${env.BASE_DOMAIN}/mcp`},
+							// Second registration of the same server: a distinct client id, so it
+							// can be bound to a different mcp-auth-wrapper profile and therefore a
+							// second WhatsApp account — the agent's own number rather than Adam's
+							// (cf. gmail/gmail-2, though that works via per-session OAuth instead).
+							{name: 'whatsapp-claube', url: `https://whatsapp.mcp.${env.BASE_DOMAIN}/mcp`},
 							{name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp`},
 							{name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp`},
 							{name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287'},
