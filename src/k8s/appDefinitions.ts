@@ -3,6 +3,7 @@ import {
 	haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
 	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
 	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
+	personalAgentDataPvc,
 } from './storage';
 import env from '../env/prod';
 
@@ -906,6 +907,43 @@ export const apps: AppDefinition[] = [
 			],
 		},
 		ingress: {host: `adamcon.${env.BASE_DOMAIN}`, auth: false},
+	},
+	// Adam's personal agent: a long-running Claude Code session reachable over
+	// WhatsApp. The image is a general-purpose sandbox carrying no source — the
+	// PVC holds the git checkout it edits and pushes, plus its Claude Code
+	// credential and session transcripts.
+	//
+	// First boot needs a shell: `kubectl exec -it deploy/personal-agent -- bash`,
+	// then `claude` to authenticate. The entrypoint waits until that exists
+	// rather than crash-looping, so an unauthenticated pod sits idle and says so.
+	{
+		name: 'personal-agent',
+		targetPort: 4317,
+		// Single replica on a RWO volume, and two Claude Code sessions sharing one
+		// checkout would fight: replace, don't roll.
+		strategy: {type: 'Recreate'},
+		spec: {
+			// The PVC mounts as root-owned by default; the container runs as root
+			// so this is only about the files it creates staying readable.
+			securityContext: {fsGroup: 0},
+			containers: [{
+				name: 'personal-agent',
+				image: 'ghcr.io/domdomegg/personal-agent:latest',
+				imagePullPolicy: 'Always',
+				volumeMounts: [{
+					name: 'personal-agent-data-volume',
+					mountPath: '/home/agent',
+				}],
+			}],
+			volumes: [{
+				name: 'personal-agent-data-volume',
+				persistentVolumeClaim: {
+					claimName: personalAgentDataPvc.metadata.name,
+				},
+			}],
+		},
+		// The transcript viewer, behind the same auth as the other internal tools.
+		ingress: {host: `agent.${env.BASE_DOMAIN}`, auth: true},
 	},
 ];
 

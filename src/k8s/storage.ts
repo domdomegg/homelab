@@ -389,3 +389,23 @@ export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-dat
 		},
 	},
 }, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
+
+export const personalAgentDataPvc = new k8s.core.v1.PersistentVolumeClaim('personal-agent-data-pvc', {
+	metadata: {
+		name: 'personal-agent-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				// The agent's home: its git checkout, its Claude Code credential and
+				// session transcripts, and npm's cache. Transcripts are the bulk of
+				// it and grow with every conversation.
+				storage: '10Gi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
