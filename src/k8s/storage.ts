@@ -402,9 +402,16 @@ export const personalAgentDataPvc = new k8s.core.v1.PersistentVolumeClaim('perso
 		resources: {
 			requests: {
 				// The agent's home: its git checkout, its Claude Code credential and
-				// session transcripts, and npm's cache. Transcripts are the bulk of
-				// it and grow with every conversation.
-				storage: '10Gi',
+				// session transcripts, and npm's cache. Transcripts are the bulk and
+				// grow with every conversation, so this is sized to not need
+				// revisiting — the node has ~230Gi with ~67Gi claimed.
+				//
+				// Do not edit this value on a live agent. replaceOnChanges below
+				// replaces the PVC on any spec change, deleteBeforeReplace destroys
+				// the old one first, and local-path reclaims Delete without
+				// supporting expansion — so a resize silently discards the
+				// credential and every transcript. Rebuild deliberately instead.
+				storage: '50Gi',
 			},
 		},
 	},
