@@ -402,7 +402,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'starling-bank-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:6f44f74fefe7406379f5e62c5348920f4fb919e2a9fb484c65e5e2a54eeaeb8b',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
@@ -441,7 +441,7 @@ export const apps: AppDefinition[] = [
 			securityContext: {fsGroup: 1000},
 			containers: [{
 				name: 'airtable-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:6f44f74fefe7406379f5e62c5348920f4fb919e2a9fb484c65e5e2a54eeaeb8b',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
@@ -479,7 +479,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'openfoodfacts-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:6f44f74fefe7406379f5e62c5348920f4fb919e2a9fb484c65e5e2a54eeaeb8b',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
@@ -517,7 +517,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'olio-volunteer-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:6f44f74fefe7406379f5e62c5348920f4fb919e2a9fb484c65e5e2a54eeaeb8b',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
