@@ -913,9 +913,11 @@ export const apps: AppDefinition[] = [
 	// PVC holds the git checkout it edits and pushes, plus its Claude Code
 	// credential and session transcripts.
 	//
-	// First boot needs a shell: `kubectl exec -it deploy/personal-agent -- bash`,
-	// then `claude` to authenticate. The entrypoint waits until that exists
-	// rather than crash-looping, so an unauthenticated pod sits idle and says so.
+	// First boot needs a shell — note the -deployment suffix that services.ts
+	// appends, without which this is a confusing NotFound:
+	// `kubectl exec -it deploy/personal-agent-deployment -- bash`, then `claude`
+	// to authenticate. The entrypoint waits until that exists rather than
+	// crash-looping, so an unauthenticated pod sits idle and says so.
 	{
 		name: 'personal-agent',
 		targetPort: 4317,
