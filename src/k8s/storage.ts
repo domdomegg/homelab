@@ -42,13 +42,6 @@ scene: !include scenes.yaml
 
 ### CUSTOM CONFIG ###
 
-# Allow proxied connections because this sits behind an ingress controller
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 0.0.0.0/0
-    - ::/0
-
 # Set up Alexa integration
 # https://www.home-assistant.io/integrations/alexa.smart_home/
 alexa:
