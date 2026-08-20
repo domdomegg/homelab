@@ -66,7 +66,14 @@ apps.forEach((app) => {
 						...(app.ingress.auth
 							? {
 								'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
-								'nginx.ingress.kubernetes.io/auth-url': `https://vouch.${env.BASE_DOMAIN}/validate`,
+								// Server-side subrequest, so keep it in-cluster. Any *public* vouch
+								// hostname sends every auth check back out over the home uplink and
+								// in again via NAT loopback (v6) or the Oracle relay (v4), paying a
+								// TLS handshake on a hop that never leaves the node -- which made
+								// authenticated services hang for up to 60s whenever that path
+								// blipped. auth-signin above must stay public: it's a browser
+								// redirect, not a subrequest. No port here -- the svc listens on 80.
+								'nginx.ingress.kubernetes.io/auth-url': 'http://vouch-proxy-svc.default.svc.cluster.local/validate',
 							}
 							: {}),
 						'nginx.ingress.kubernetes.io/proxy-body-size': '20m',
