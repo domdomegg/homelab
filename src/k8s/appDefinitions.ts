@@ -728,34 +728,40 @@ export const apps: AppDefinition[] = [
 							issuer: `https://oidc.${env.BASE_DOMAIN}`,
 							clientId: 'mcp-aggregator',
 						},
+						// In-cluster upstreams use their service DNS names directly: going via
+						// the public hostname hairpins through the ingress and re-does TLS on
+						// every connection (~130ms/request vs ~5ms internal), and the
+						// aggregator connects per call. OAuth still works: the wrappers serve
+						// their discovery metadata on any Host, and the endpoints they
+						// advertise there are the public URLs.
 						upstreams: [
-							{name: 'gmail', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'gmail-2', url: `https://gmail.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-cal', url: `https://google-cal.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-contacts', url: `https://google-contacts.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-documents', url: `https://google-documents.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-drive', url: `https://google-drive.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-maps-places', url: `https://google-maps-places.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-sheets', url: `https://google-sheets.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'google-workspace', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp`},
+							{name: 'gmail', url: 'http://gmail-mcp-svc/mcp'},
+							{name: 'gmail-2', url: 'http://gmail-mcp-svc/mcp'},
+							{name: 'google-cal', url: 'http://google-cal-mcp-svc/mcp'},
+							{name: 'google-contacts', url: 'http://google-contacts-mcp-svc/mcp'},
+							{name: 'google-documents', url: 'http://google-documents-mcp-svc/mcp'},
+							{name: 'google-drive', url: 'http://google-drive-mcp-svc/mcp'},
+							{name: 'google-maps-places', url: 'http://google-maps-places-mcp-svc/mcp'},
+							{name: 'google-sheets', url: 'http://google-sheets-mcp-svc/mcp'},
+							{name: 'google-workspace', url: 'http://google-workspace-mcp-svc/mcp'},
 							// Second registration of the same server: a distinct aggregator session so one
 							// person can authorize a second Google account in parallel (cf. gmail/gmail-2).
-							{name: 'google-workspace-2', url: `https://google-workspace.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'starling-bank', url: `https://starling-bank.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'airtable', url: `https://airtable.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'openfoodfacts', url: `https://openfoodfacts.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'olio', url: `https://olio.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'benepass', url: `https://benepass.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'barcode-scanner', url: `https://barcode-scanner.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'home-assistant', url: `https://ha.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'whatsapp', url: `https://whatsapp.mcp.${env.BASE_DOMAIN}/mcp`},
+							{name: 'google-workspace-2', url: 'http://google-workspace-mcp-svc/mcp'},
+							{name: 'starling-bank', url: 'http://starling-bank-mcp-svc/mcp'},
+							{name: 'airtable', url: 'http://airtable-mcp-svc/mcp'},
+							{name: 'openfoodfacts', url: 'http://openfoodfacts-mcp-svc/mcp'},
+							{name: 'olio', url: 'http://olio-volunteer-mcp-svc/mcp'},
+							{name: 'benepass', url: 'http://benepass-mcp-svc/mcp'},
+							{name: 'barcode-scanner', url: 'http://barcode-scanner-mcp-svc/mcp'},
+							{name: 'home-assistant', url: 'http://ha-mcp-svc/mcp'},
+							{name: 'whatsapp', url: 'http://whatsapp-mcp-svc/mcp'},
 							// Second registration of the same server: a distinct client id, so it
 							// can be bound to a different mcp-auth-wrapper profile and therefore a
 							// second WhatsApp account — the agent's own number rather than Adam's
 							// (cf. gmail/gmail-2, though that works via per-session OAuth instead).
-							{name: 'whatsapp-claube', url: `https://whatsapp.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'tool-sandbox', url: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}/mcp`},
-							{name: 'tunnel', url: `https://tunnel.mcp.${env.BASE_DOMAIN}/mcp`},
+							{name: 'whatsapp-claube', url: 'http://whatsapp-mcp-svc/mcp'},
+							{name: 'tool-sandbox', url: 'http://tool-sandbox-mcp-svc/mcp'},
+							{name: 'tunnel', url: 'http://mcp-local-tunnel-svc/mcp'},
 							{name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287'},
 							{name: 'posthog', url: 'https://mcp.posthog.com/mcp'},
 						],
