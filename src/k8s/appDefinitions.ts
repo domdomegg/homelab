@@ -358,21 +358,31 @@ export const apps: AppDefinition[] = [
 	// a Google authorization via the /oauth2callback flow, tokens persisted per-user to the PVC.
 	// Reuses the shared GOOGLE_MCP OAuth client — the redirect URI
 	// https://google-workspace.mcp.${BASE_DOMAIN}/oauth2callback must be registered on that client.
-	// NB: runs as root to install Python/uv at startup (same pattern as ha-mcp).
+	// NB: runs as root so it can write its credentials + caches to the PVC.
 	{
+		// Runs Adam's fork at a pinned commit rather than the PyPI release: it carries the
+		// generic api_call tool (upstream PR taylorwilsdon/google_workspace_mcp#885, still
+		// open) rebased onto v1.25.0. Bump the SHA to pick up changes; drop the --from once
+		// upstream ships api_call.
 		name: 'google-workspace-mcp',
 		targetPort: 8000,
 		spec: {
 			containers: [{
 				name: 'google-workspace-mcp',
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['sh', '-c'],
-				args: [
-					'apk add --no-cache python3 py3-pip && python3 -m pip install --break-system-packages uv && exec uvx workspace-mcp --transport streamable-http --tool-tier complete',
-				],
+				// uv + python baked in: the previous node image ran apk add + pip install uv on
+				// every boot, and a DNS blip mid-install crashed the pod on 2026-08-20.
+				image: 'ghcr.io/astral-sh/uv:python3.12-alpine@sha256:138f90e67682b923c4bbcc91d2bae98434e8ba8b32b555e390b055b504f69f91',
+				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/a4a3a8d57e464827f0d3ebd6f1603c03c2774fa6.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
 				securityContext: {runAsUser: 0},
 				env: [
 					{name: 'MCP_ENABLE_OAUTH21', value: 'true'},
+					// The OAuth-proxy state (registered MCP clients, refresh tokens) defaults to
+					// memory, so every restart silently invalidated the aggregator's credentials
+					// (dead 2026-08-20 -> 23). Keep it on the PVC next to the Google credentials.
+					{name: 'WORKSPACE_MCP_OAUTH_PROXY_STORAGE_BACKEND', value: 'disk'},
+					{name: 'WORKSPACE_MCP_OAUTH_PROXY_DISK_DIRECTORY', value: '/app/data/oauth-proxy'},
+					// Cache the resolved package on the PVC so restarts do not depend on the network.
+					{name: 'UV_CACHE_DIR', value: '/app/data/uv-cache'},
 					{name: 'GOOGLE_OAUTH_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID},
 					{name: 'GOOGLE_OAUTH_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET},
 					{name: 'WORKSPACE_MCP_PORT', value: '8000'},
