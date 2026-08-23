@@ -668,27 +668,6 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `benepass.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// Tool Sandbox MCP (sandboxed code execution with access to gateway tools, proxies OAuth from gateway)
-	{
-		name: 'tool-sandbox-mcp',
-		targetPort: 3000,
-		spec: {
-			containers: [{
-				name: 'tool-sandbox-mcp',
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['npx', '-y', 'tool-sandbox-mcp'],
-				env: [{
-					name: 'TOOL_SANDBOX_MCP_CONFIG',
-					value: JSON.stringify({
-						upstream: `https://mcp.${env.BASE_DOMAIN}`,
-						issuerUrl: `https://tool-sandbox.mcp.${env.BASE_DOMAIN}`,
-					}),
-				}],
-			}],
-		},
-		ingress: {host: `tool-sandbox.mcp.${env.BASE_DOMAIN}`, auth: false},
-	},
-
 	// MCP Local Tunnel relay (bridges agent WebSocket connections to MCP endpoint)
 	{
 		name: 'mcp-local-tunnel',
@@ -760,7 +739,6 @@ export const apps: AppDefinition[] = [
 							// second WhatsApp account — the agent's own number rather than Adam's
 							// (cf. gmail/gmail-2, though that works via per-session OAuth instead).
 							{name: 'whatsapp-claube', url: 'http://whatsapp-mcp-svc/mcp'},
-							{name: 'tool-sandbox', url: 'http://tool-sandbox-mcp-svc/mcp'},
 							{name: 'tunnel', url: 'http://mcp-local-tunnel-svc/mcp'},
 							{name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287'},
 							{name: 'posthog', url: 'https://mcp.posthog.com/mcp'},
