@@ -7,6 +7,16 @@ import {
 } from './storage';
 import env from '../env/prod';
 
+// `npx -y <pkg>` starts the server under an `npm exec` parent that stays resident for the
+// life of the pod (37-101Mi each, ~460Mi across these pods on 2026-08-23). Install the
+// package into the pod at boot instead and run its bin directly. /tmp is writable for the
+// non-root `node` user in the mcp-auth-wrapper image; the install costs a few seconds and a
+// registry fetch per boot, which is what `npx -y` did anyway.
+const npmBootInstall = (pkg: string) => `npm install --no-save --omit=dev --prefix /tmp/srv ${pkg}`;
+const npmBin = (pkg: string) => `/tmp/srv/node_modules/.bin/${pkg}`;
+// mcp-auth-wrapper's image entrypoint, for pods that run a boot step first.
+const execWrapper = 'exec node /app/dist/index.js';
+
 export const apps: AppDefinition[] = [
 	{
 		name: 'nginx',
@@ -314,7 +324,7 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: `${name}-mcp`,
 				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['npx', '-y', `${name}-mcp`],
+				command: ['sh', '-c', `${npmBootInstall(`${name}-mcp`)} && exec ${npmBin(`${name}-mcp`)}`],
 				env: [
 					{name: 'MCP_TRANSPORT', value: 'http'},
 					{name: 'GOOGLE_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID},
@@ -392,10 +402,11 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'starling-bank-mcp',
 				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				command: ['sh', '-c', `${npmBootInstall('starling-bank-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
-						command: ['npx', '-y', 'starling-bank-mcp'],
+						command: [npmBin('starling-bank-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						envPerUser: [
 							{name: 'STARLING_BANK_ACCESS_TOKEN', label: 'Starling Bank Access Token', secret: true},
@@ -431,10 +442,11 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'airtable-mcp',
 				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				command: ['sh', '-c', `${npmBootInstall('airtable-mcp-server')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
-						command: ['npx', '-y', 'airtable-mcp-server'],
+						command: [npmBin('airtable-mcp-server')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						envPerUser: [
 							{name: 'AIRTABLE_API_KEY', label: 'Airtable Personal Access Token', secret: true},
@@ -469,10 +481,11 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'openfoodfacts-mcp',
 				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				command: ['sh', '-c', `${npmBootInstall('openfoodfacts-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
-						command: ['npx', '-y', 'openfoodfacts-mcp'],
+						command: [npmBin('openfoodfacts-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						envPerUser: [
 							{name: 'OFF_USER_AGENT', label: 'User Agent (e.g. MyApp/1.0 (email@example.com))'},
@@ -507,10 +520,11 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'olio-volunteer-mcp',
 				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				command: ['sh', '-c', `${npmBootInstall('olio-volunteer-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
-						command: ['npx', '-y', 'olio-volunteer-mcp'],
+						command: [npmBin('olio-volunteer-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						envPerUser: [
 							{name: 'OLIO_SESSION_ID', label: 'Olio Volunteer Hub _session_id cookie', secret: true},
@@ -543,10 +557,12 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'ha-mcp',
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				// Root, so the boot step can apk/pip install. uv tool install puts a real `ha-mcp` bin
+				// on PATH; `uvx ha-mcp` would leave a 42Mi uv launcher resident beside the server.
 				command: ['sh', '-c'],
 				args: [
-					'apk add --no-cache python3 py3-pip && python3 -m pip install --break-system-packages uv && exec npx -y mcp-auth-wrapper',
+					`apk add --no-cache python3 py3-pip && python3 -m pip install --break-system-packages uv && UV_TOOL_DIR=/opt/uv-tools UV_TOOL_BIN_DIR=/usr/local/bin uv tool install ha-mcp==7.3.0 && ${execWrapper}`,
 				],
 				securityContext: {runAsUser: 0},
 				env: [
@@ -554,7 +570,7 @@ export const apps: AppDefinition[] = [
 					{
 						name: 'MCP_AUTH_WRAPPER_CONFIG',
 						value: JSON.stringify({
-							command: ['uvx', 'ha-mcp==7.3.0'],
+							command: ['ha-mcp'],
 							auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 							envPerUser: [
 								{name: 'HOMEASSISTANT_TOKEN', label: 'Home Assistant Long-Lived Access Token', secret: true},
@@ -628,7 +644,7 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'barcode-scanner-mcp',
 				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['npx', '-y', 'barcode-scanner-mcp'],
+				command: ['sh', '-c', `${npmBootInstall('barcode-scanner-mcp')} && exec ${npmBin('barcode-scanner-mcp')}`],
 				env: [
 					{name: 'MCP_TRANSPORT', value: 'http'},
 				],
@@ -647,7 +663,7 @@ export const apps: AppDefinition[] = [
 			containers: [{
 				name: 'benepass-mcp',
 				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['npx', '-y', 'benepass-mcp'],
+				command: ['sh', '-c', `${npmBootInstall('benepass-mcp')} && exec ${npmBin('benepass-mcp')}`],
 				env: [
 					{name: 'MCP_TRANSPORT', value: 'http'},
 				],
