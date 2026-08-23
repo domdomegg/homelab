@@ -362,8 +362,8 @@ export const apps: AppDefinition[] = [
 	{
 		// Runs Adam's fork at a pinned commit rather than the PyPI release: it carries the
 		// generic api_call tool (upstream PR taylorwilsdon/google_workspace_mcp#885, still
-		// open) rebased onto v1.25.0. Bump the SHA to pick up changes; drop the --from once
-		// upstream ships api_call.
+		// open) rebased onto v1.25.0, plus WORKSPACE_MCP_EXTRA_SCOPES. Bump the SHA to pick
+		// up changes; drop the --from once upstream ships both.
 		name: 'google-workspace-mcp',
 		targetPort: 8000,
 		spec: {
@@ -372,7 +372,7 @@ export const apps: AppDefinition[] = [
 				// uv + python baked in: the previous node image ran apk add + pip install uv on
 				// every boot, and a DNS blip mid-install crashed the pod on 2026-08-20.
 				image: 'ghcr.io/astral-sh/uv:python3.12-alpine@sha256:138f90e67682b923c4bbcc91d2bae98434e8ba8b32b555e390b055b504f69f91',
-				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/a4a3a8d57e464827f0d3ebd6f1603c03c2774fa6.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
+				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/f7020a0a6f05a4c01e12b8423965cf92067c27f6.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
 				securityContext: {runAsUser: 0},
 				env: [
 					{name: 'MCP_ENABLE_OAUTH21', value: 'true'},
@@ -383,6 +383,10 @@ export const apps: AppDefinition[] = [
 					{name: 'WORKSPACE_MCP_OAUTH_PROXY_DISK_DIRECTORY', value: '/app/data/oauth-proxy'},
 					// Cache the resolved package on the PVC so restarts do not depend on the network.
 					{name: 'UV_CACHE_DIR', value: '/app/data/uv-cache'},
+					// cloud-platform lets api_call reach the Places API (what google-maps-places-mcp
+					// needs), so that pod can go too. Broad scope: it covers Adam's whole GCP.
+					// Scopes are fixed at auth time - re-auth after changing this.
+					{name: 'WORKSPACE_MCP_EXTRA_SCOPES', value: 'https://www.googleapis.com/auth/cloud-platform'},
 					{name: 'GOOGLE_OAUTH_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID},
 					{name: 'GOOGLE_OAUTH_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET},
 					{name: 'WORKSPACE_MCP_PORT', value: '8000'},
