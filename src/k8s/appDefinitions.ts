@@ -1,7 +1,7 @@
 import {type apps as appsTypes, type core} from '@pulumi/kubernetes/types/input';
 import {
 	haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
-	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, musicAssistantDataPvc, haMcpDataPvc,
+	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, haMcpDataPvc,
 	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
 	personalAgentDataPvc,
 } from './storage';
@@ -273,32 +273,6 @@ export const apps: AppDefinition[] = [
 			}],
 		},
 	},
-	{
-		name: 'music-assistant',
-		targetPort: 8095,
-		spec: {
-			// Required for mDNS/Zeroconf device discovery (Chromecast, Sonos, AirPlay, DLNA, Squeezebox)
-			// — multicast doesn't traverse the pod network namespace.
-			hostNetwork: true,
-			dnsPolicy: 'ClusterFirstWithHostNet',
-			containers: [{
-				name: 'music-assistant',
-				image: 'ghcr.io/music-assistant/server:latest@sha256:5500c53c5129bbabfb0de2c2c298fd0ef15fe34207bbe5794f49c587b76bde95',
-				volumeMounts: [{
-					name: 'music-assistant-data-volume',
-					mountPath: '/data',
-				}],
-			}],
-			volumes: [{
-				name: 'music-assistant-data-volume',
-				persistentVolumeClaim: {
-					claimName: musicAssistantDataPvc.metadata.name,
-				},
-			}],
-		},
-		ingress: {host: `music.${env.BASE_DOMAIN}`, auth: true},
-	},
-
 	// ── MCP gateway ──
 	// Auth principle for every MCP server behind the aggregator: per-person self-serve auth.
 	// Each user authorizes their own account through the OAuth flow (or supplies their own
