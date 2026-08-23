@@ -241,23 +241,6 @@ export const olioVolunteerMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ol
 	},
 }, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
-export const musicAssistantDataPvc = new k8s.core.v1.PersistentVolumeClaim('music-assistant-data-pvc', {
-	metadata: {
-		name: 'music-assistant-data-pvc',
-		annotations: {
-			'pulumi.com/skipAwait': 'true',
-		},
-	},
-	spec: {
-		accessModes: ['ReadWriteOnce'],
-		resources: {
-			requests: {
-				storage: '5Gi',
-			},
-		},
-	},
-}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
-
 export const haMcpDataPvc = new k8s.core.v1.PersistentVolumeClaim('ha-mcp-data-pvc', {
 	metadata: {
 		name: 'ha-mcp-data-pvc',
