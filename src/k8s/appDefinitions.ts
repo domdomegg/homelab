@@ -401,7 +401,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'starling-bank-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
 				command: ['sh', '-c', `${npmBootInstall('starling-bank-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
@@ -441,7 +441,7 @@ export const apps: AppDefinition[] = [
 			securityContext: {fsGroup: 1000},
 			containers: [{
 				name: 'airtable-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
 				command: ['sh', '-c', `${npmBootInstall('airtable-mcp-server')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
@@ -480,7 +480,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'openfoodfacts-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
 				command: ['sh', '-c', `${npmBootInstall('openfoodfacts-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
@@ -519,7 +519,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'olio-volunteer-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
 				command: ['sh', '-c', `${npmBootInstall('olio-volunteer-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
@@ -557,7 +557,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'ha-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c596ccc3d022bd56cc5211c5bdc0c537f678e5cf774eddefc6c6511c49150790',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
 				// Root, so the boot step can apk/pip install. uv tool install puts a real `ha-mcp` bin
 				// on PATH; `uvx ha-mcp` would leave a 42Mi uv launcher resident beside the server.
 				command: ['sh', '-c'],
@@ -703,7 +703,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'mcp-aggregator',
-				image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:8e001bcb9cf4bad273f09064dc1f8af2001524f8f4d1a0286af6564f4a15ef54',
+				image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:8b771028033e0f119939d24274d267eb6eda9fc7fb261c598c334cae5c79fbfe',
 				env: [{
 					name: 'MCP_AGGREGATOR_CONFIG',
 					value: JSON.stringify({
