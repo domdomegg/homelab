@@ -39,8 +39,9 @@ apps.forEach((app) => {
 		},
 	}, {provider});
 
-	if (app.targetPort) {
-		const service = new k8s.core.v1.Service(`${app.name}-svc`, {
+	/** A ClusterIP Service on the pod, and optionally an Ingress in front of it. */
+	const expose = (resourceName: string, targetPort: number, ing?: {host: string; auth: boolean}) => {
+		const service = new k8s.core.v1.Service(`${resourceName}-svc`, {
 			spec: {
 				type: 'ClusterIP',
 				selector: labels,
@@ -48,22 +49,22 @@ apps.forEach((app) => {
 				ports: [{
 					name: 'default',
 					port: 80,
-					targetPort: app.targetPort,
+					targetPort,
 				}],
 			},
 			metadata: {
-				name: `${app.name}-svc`,
+				name: `${resourceName}-svc`,
 			},
 		}, {provider, dependsOn: [deployment]});
 
-		if (app.ingress) {
-			new k8s.networking.v1.Ingress(`${app.name}-ingress`, {
+		if (ing) {
+			new k8s.networking.v1.Ingress(`${resourceName}-ingress`, {
 				metadata: {
-					name: `${app.name}-ingress`,
+					name: `${resourceName}-ingress`,
 					annotations: {
 						'kubernetes.io/ingress.class': 'nginx',
 						'cert-manager.io/cluster-issuer': 'cert-manager-issuer',
-						...(app.ingress.auth
+						...(ing.auth
 							? {
 								'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
 								// Server-side subrequest, so keep it in-cluster. Any *public* vouch
@@ -81,10 +82,10 @@ apps.forEach((app) => {
 				},
 				spec: {
 					tls: [{
-						hosts: [app.ingress.host],
-						secretName: `${app.name}-certificate`,
+						hosts: [ing.host],
+						secretName: `${resourceName}-certificate`,
 					}],
-					rules: [app.ingress.host].map((host) => ({
+					rules: [ing.host].map((host) => ({
 						host,
 						http: {
 							paths: [{
@@ -104,5 +105,13 @@ apps.forEach((app) => {
 				},
 			}, {provider, dependsOn: [ingress]});
 		}
+	};
+
+	if (app.targetPort) {
+		expose(app.name, app.targetPort, app.ingress);
 	}
+
+	app.extraIngresses?.forEach((extra) => {
+		expose(`${app.name}-${extra.name}`, extra.targetPort, {host: extra.host, auth: extra.auth});
+	});
 });

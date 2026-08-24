@@ -938,6 +938,12 @@ export const apps: AppDefinition[] = [
 		},
 		// The transcript viewer, behind the same auth as the other internal tools.
 		ingress: {host: `agent.${env.BASE_DOMAIN}`, auth: true},
+		// The agent's desktop (Xvfb + Chromium in its container), served as noVNC
+		// on 6080 so Adam can watch or take over a browser session. Auth-gated;
+		// x11vnc itself listens on localhost only.
+		extraIngresses: [{
+			name: 'desktop', targetPort: 6080, host: `desktop.${env.BASE_DOMAIN}`, auth: true,
+		}],
 	},
 ];
 
@@ -947,4 +953,10 @@ type AppDefinition = {
 	spec: core.v1.PodSpec;
 	strategy?: appsTypes.v1.DeploymentStrategy;
 	ingress?: {host: string; auth: boolean};
+	/**
+	 * Further ports on the same pod, each with its own hostname: a second
+	 * Service + Ingress per entry (e.g. the agent's noVNC desktop beside its
+	 * viewer). `name` suffixes the generated resources.
+	 */
+	extraIngresses?: {name: string; targetPort: number; host: string; auth: boolean}[];
 };
