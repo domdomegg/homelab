@@ -20,7 +20,7 @@ import env from '../env/prod';
 // dependence on the relay, the router's pinholes or what ddclient last published.
 // Nothing is pinned: the Service name follows the Helm release, the address follows
 // the Service.
-const domain = env.BASE_DOMAIN.replace(/\./g, "\\.");
+const domain = env.BASE_DOMAIN.replace(/\./g, '\\.');
 // The chart names its controller Service `<fullname>-controller`, and fullname is the
 // release name when that already contains the chart name (it does: `ingress-nginx-…`).
 const controllerService = pulumi.interpolate`${ingress.status.name}-controller.${ingress.namespace}.svc.cluster.local`;
