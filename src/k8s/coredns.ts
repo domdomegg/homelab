@@ -1,21 +1,29 @@
+import * as pulumi from '@pulumi/pulumi';
 import * as k8s from '@pulumi/kubernetes';
 import {provider} from './provider';
+import {ingress} from './ingress';
 import env from '../env/prod';
 
-// Split-horizon DNS for our own public hostname inside the cluster.
+// Loop our own public hostname back through the ingress, inside the cluster.
 //
 // Publicly `*.${BASE_DOMAIN}` resolves to the Oracle IPv4 relay (A) and the node's
 // IPv6 via ddclient (AAAA). In-cluster clients that touch a public hostname — the
 // aggregator refreshing upstream tokens at a wrapper's advertised /token, wrappers
 // validating against oidc.*, call-mcp inside personal-agent — were hairpinning out
-// through the relay. On 2026-08-29 the relay path died after a NIC flap and every
-// such call failed within an hour as tokens expired, taking the whole MCP stack with it.
+// through the relay and back. On 2026-08-29 the relay path died after a NIC flap and
+// every such call failed within an hour as tokens expired, taking the MCP stack with it.
 //
-// k3s CoreDNS imports `/etc/coredns/custom/*.server` from this ConfigMap, so this
-// answers AAAA with the ingress-nginx LoadBalancer IP (the static k3s node IP) and A
-// with NODATA: in-cluster traffic goes straight to ingress-nginx, independent of the
-// relay, the router's pinholes and whatever ddclient last published.
-const ingressIpv6 = '2a01:4b00:bd15:c800::3e6';
+// k3s CoreDNS imports `/etc/coredns/custom/*.override` into its main server block,
+// so this rewrite runs ahead of the kubernetes plugin: any name under BASE_DOMAIN is
+// answered as the ingress-nginx controller Service. Pods then reach nginx directly
+// on its cluster IP — same Host, TLS and routing rules as from outside, but no
+// dependence on the relay, the router's pinholes or what ddclient last published.
+// Nothing is pinned: the Service name follows the Helm release, the address follows
+// the Service.
+const domain = env.BASE_DOMAIN.replace(/\./g, "\\.");
+// The chart names its controller Service `<fullname>-controller`, and fullname is the
+// release name when that already contains the chart name (it does: `ingress-nginx-…`).
+const controllerService = pulumi.interpolate`${ingress.status.name}-controller.${ingress.namespace}.svc.cluster.local`;
 
 export const corednsCustomConfigmap = new k8s.core.v1.ConfigMap('coredns-custom', {
 	metadata: {
@@ -23,17 +31,9 @@ export const corednsCustomConfigmap = new k8s.core.v1.ConfigMap('coredns-custom'
 		namespace: 'kube-system',
 	},
 	data: {
-		'home-domain.server': `${env.BASE_DOMAIN}:53 {
-  errors
-  template IN AAAA ${env.BASE_DOMAIN} {
-    answer "{{ .Name }} 60 IN AAAA ${ingressIpv6}"
-    fallthrough
-  }
-  template IN A ${env.BASE_DOMAIN} {
-    rcode NOERROR
-    fallthrough
-  }
-  forward . /etc/resolv.conf
+		'home-domain.override': pulumi.interpolate`rewrite stop {
+  name regex (.*\\.)?${domain}\\.$ ${controllerService}.
+  answer auto
 }
 `,
 	},
