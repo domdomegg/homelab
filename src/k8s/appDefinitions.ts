@@ -355,7 +355,7 @@ export const apps: AppDefinition[] = [
 				name: 'google-workspace-mcp',
 				// uv + python baked in: the previous node image ran apk add + pip install uv on
 				// every boot, and a DNS blip mid-install crashed the pod on 2026-08-20.
-				image: 'ghcr.io/astral-sh/uv:python3.12-alpine@sha256:7c3dd10db69322e1ded10a98507aa0f140c81565678523a2f3054e166ad8978b',
+				image: 'ghcr.io/astral-sh/uv:python3.12-alpine@sha256:bba3bd4965901846f025ae7375402ba859862bb83181f19d7e4a82f0f1f8388e',
 				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/f7020a0a6f05a4c01e12b8423965cf92067c27f6.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
 				securityContext: {runAsUser: 0},
 				env: [
