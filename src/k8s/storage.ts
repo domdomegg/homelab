@@ -68,6 +68,26 @@ listener 1883 ::1
 	},
 }, {provider});
 
+// Mosquitto holds the retained HA discovery configs Zigbee2MQTT publishes on startup.
+// Without this, a mosquitto restart wipes them and HA marks every Zigbee entity
+// unavailable the next time HA restarts.
+export const mosquittoDataPvc = new k8s.core.v1.PersistentVolumeClaim('mosquitto-data-pvc', {
+	metadata: {
+		name: 'mosquitto-data-pvc',
+		annotations: {
+			'pulumi.com/skipAwait': 'true',
+		},
+	},
+	spec: {
+		accessModes: ['ReadWriteOnce'],
+		resources: {
+			requests: {
+				storage: '100Mi',
+			},
+		},
+	},
+}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
+
 export const zigbee2mqttDataPvc = new k8s.core.v1.PersistentVolumeClaim('zigbee2mqtt-data-pvc', {
 	metadata: {
 		name: 'zigbee2mqtt-data-pvc',

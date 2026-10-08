@@ -1,6 +1,6 @@
 import {type apps as appsTypes, type core} from '@pulumi/kubernetes/types/input';
 import {
-	haDataPvc, mosquittoConfigmap, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
+	haDataPvc, mosquittoConfigmap, mosquittoDataPvc, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
 	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, haMcpDataPvc,
 	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
 	personalAgentDataPvc,
@@ -87,14 +87,26 @@ export const apps: AppDefinition[] = [
 						mountPath: '/mosquitto/config/mosquitto.conf',
 						subPath: 'mosquitto.conf',
 					},
+					{
+						name: 'mosquitto-data-volume',
+						mountPath: '/mosquitto/data',
+					},
 				],
 			}],
-			volumes: [{
-				name: 'mosquitto-configmap-volume',
-				configMap: {
-					name: mosquittoConfigmap.metadata.name,
+			volumes: [
+				{
+					name: 'mosquitto-configmap-volume',
+					configMap: {
+						name: mosquittoConfigmap.metadata.name,
+					},
 				},
-			}],
+				{
+					name: 'mosquitto-data-volume',
+					persistentVolumeClaim: {
+						claimName: mosquittoDataPvc.metadata.name,
+					},
+				},
+			],
 		},
 	},
 	{
