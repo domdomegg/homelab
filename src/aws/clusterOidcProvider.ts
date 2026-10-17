@@ -1,8 +1,8 @@
 import * as aws from '@pulumi/aws';
 
 // The k3s cluster's OIDC issuer, so AWS can federate against cluster
-// service-account tokens (the adamcon app assumes an SES-send role via it).
-// Lives here — next to the cluster and the app that use it — rather than in the
+// service-account tokens (no app uses it currently; adamcon did, for SES).
+// Lives here — next to the cluster that uses it — rather than in the
 // account-level aws-shared-infra repo.
 //
 // IMPORTED (created out-of-band, then moved out of aws-shared-infra's state):

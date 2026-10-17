@@ -8,8 +8,8 @@ apps.forEach((app) => {
 	const labels = {app: app.name};
 
 	// Every app runs as its own service account so there's always a distinct,
-	// ready-made identity to hang RBAC grants, cloud federation trust policies
-	// (e.g. adamcon's AWS role), etc. off — rather than sharing 'default'.
+	// ready-made identity to hang RBAC grants, cloud federation trust policies,
+	// etc. off — rather than sharing 'default'.
 	const serviceAccount = new k8s.core.v1.ServiceAccount(`${app.name}-sa`, {
 		metadata: {
 			name: app.name,
@@ -30,8 +30,7 @@ apps.forEach((app) => {
 					serviceAccountName: serviceAccount.metadata.name,
 					// Identity without credentials: don't mount the k8s API token by
 					// default. Apps that need a token opt in, e.g. via a projected
-					// serviceAccountToken volume (unaffected by this setting) like
-					// adamcon's AWS one.
+					// serviceAccountToken volume (unaffected by this setting) like oidc-discovery.
 					automountServiceAccountToken: false,
 					...app.spec,
 				},
