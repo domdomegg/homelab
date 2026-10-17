@@ -2,7 +2,7 @@ import {type apps as appsTypes, type core} from '@pulumi/kubernetes/types/input'
 import {
 	haDataPvc, mosquittoConfigmap, mosquittoDataPvc, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
 	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, haMcpDataPvc,
-	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
+	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, oidcDiscoveryConfigmap,
 	personalAgentDataPvc,
 } from './storage';
 import env from '../env/prod';
@@ -648,7 +648,7 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `whatsapp.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// Barcode Scanner MCP (no auth, direct HTTP)
+	// Barcode Scanner MCP (no auth). No public ingress: only reachable via the aggregator.
 	{
 		name: 'barcode-scanner-mcp',
 		targetPort: 3000,
@@ -662,12 +662,10 @@ export const apps: AppDefinition[] = [
 				],
 			}],
 		},
-		ingress: {host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// Benepass MCP (no auth, direct HTTP — server is fully stateless, every tool call carries
-	// its own refresh_token. Aggregator inclusion is fine because the aggregator is OIDC-gated;
-	// the direct ingress is the only public surface either way.)
+	// Benepass MCP (no auth — server is fully stateless, every tool call carries its own
+	// refresh_token). No public ingress: only reachable in-cluster, via the OIDC-gated aggregator.
 	{
 		name: 'benepass-mcp',
 		targetPort: 3000,
@@ -681,7 +679,6 @@ export const apps: AppDefinition[] = [
 				],
 			}],
 		},
-		ingress: {host: `benepass.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
 	// MCP Local Tunnel relay (bridges agent WebSocket connections to MCP endpoint)
@@ -783,17 +780,6 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 	{
-		name: 'pairdrop',
-		targetPort: 3000,
-		spec: {
-			containers: [{
-				name: 'pairdrop',
-				image: 'ghcr.io/schlagmichdoch/pairdrop:latest@sha256:c4b30977264a76e335740089e693a52a0d0d616330dec7f93c7b96beef7b4a02',
-			}],
-		},
-		ingress: {host: `pairdrop.${env.BASE_DOMAIN}`, auth: true},
-	},
-	{
 		// Serves the cluster's OIDC discovery documents (see
 		// oidcDiscoveryConfigmap in storage.ts) so AWS IAM can federate against
 		// service account tokens.
@@ -857,60 +843,6 @@ export const apps: AppDefinition[] = [
 			],
 		},
 		ingress: {host: `k8s-oidc.${env.BASE_DOMAIN}`, auth: false},
-	},
-	{
-		// AWS trusts tokens for this app's generated service account, named
-		// 'adamcon' after the app (role homelab-app-adamcon, SES-send only; see
-		// src/aws/adamconRole.ts) — renaming the k8s app changes the token's sub
-		// claim and breaks that trust policy, so keep the app name 'adamcon' even
-		// though the AWS role is prefixed homelab-app-*.
-		name: 'adamcon',
-		targetPort: 3000,
-		// Single replica on a RWO volume: replace, don't roll
-		strategy: {type: 'Recreate'},
-		spec: {
-			containers: [{
-				name: 'adamcon',
-				image: 'ghcr.io/domdomegg/adamcon:latest',
-				imagePullPolicy: 'Always',
-				env: [
-					// Next standalone binds to HOSTNAME, which k8s sets to the pod
-					// name (= the pod's IPv6 on this cluster) — leaving the IPv4
-					// service endpoint refusing connections. Bind both families.
-					{name: 'HOSTNAME', value: '::'},
-					{name: 'APP_ORIGIN', value: `https://adamcon.${env.BASE_DOMAIN}`},
-					{name: 'EMAIL_FROM', value: 'AdamCon <adamcon@adamjones.me>'},
-					{name: 'AWS_REGION', value: 'eu-west-1'},
-					{name: 'AWS_ROLE_ARN', value: 'arn:aws:iam::338337944728:role/homelab-app-adamcon'},
-					{name: 'AWS_WEB_IDENTITY_TOKEN_FILE', value: '/var/run/secrets/aws/token'},
-				],
-				volumeMounts: [
-					{name: 'adamcon-data-volume', mountPath: '/data'},
-					{name: 'aws-token', mountPath: '/var/run/secrets/aws', readOnly: true},
-				],
-			}],
-			volumes: [
-				{
-					name: 'adamcon-data-volume',
-					persistentVolumeClaim: {
-						claimName: adamconDataPvc.metadata.name,
-					},
-				},
-				{
-					name: 'aws-token',
-					projected: {
-						sources: [{
-							serviceAccountToken: {
-								audience: 'sts.amazonaws.com',
-								expirationSeconds: 3600,
-								path: 'token',
-							},
-						}],
-					},
-				},
-			],
-		},
-		ingress: {host: `adamcon.${env.BASE_DOMAIN}`, auth: false},
 	},
 	// Adam's personal agent: a long-running Claude Code session reachable over
 	// WhatsApp. The image is a general-purpose sandbox carrying no source — the

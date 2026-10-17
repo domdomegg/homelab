@@ -369,23 +369,6 @@ export const oidcDiscoveryConfigmap = new k8s.core.v1.ConfigMap('oidc-discovery-
 	},
 }, {provider});
 
-export const adamconDataPvc = new k8s.core.v1.PersistentVolumeClaim('adamcon-data-pvc', {
-	metadata: {
-		name: 'adamcon-data-pvc',
-		annotations: {
-			'pulumi.com/skipAwait': 'true',
-		},
-	},
-	spec: {
-		accessModes: ['ReadWriteOnce'],
-		resources: {
-			requests: {
-				storage: '1Gi',
-			},
-		},
-	},
-}, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
-
 export const personalAgentDataPvc = new k8s.core.v1.PersistentVolumeClaim('personal-agent-data-pvc', {
 	metadata: {
 		name: 'personal-agent-data-pvc',
