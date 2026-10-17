@@ -12,21 +12,23 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [24]
     env:
       CI: true
     steps:
       - name: Checkout ${{ github.sha }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: https://registry.npmjs.org/
+      # No command: just installs the pinned CLI version
       - name: Install Pulumi
-        run: |
-          curl -fsSL https://get.pulumi.com | sh
-          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+        uses: pulumi/actions@8e5e406f4007fca908480587cb9893c07090f58d # v7.0.0
+        with:
+          # renovate: datasource=github-releases depName=pulumi/pulumi
+          pulumi-version: 3.266.0
       - name: Install NPM dependencies
         run: npm ci
       - name: Lint
@@ -38,13 +40,13 @@ jobs:
 
       - name: Setup WARP for IPv6 connectivity
         if: github.ref == 'refs/heads/master'
-        uses: fscarmen/warp-on-actions@v1.1
+        uses: fscarmen/warp-on-actions@37ce1997e075435a827991dabcce1d080c1fe512 # v1.4
       # AWS access via GitHub OIDC federation — no stored AWS keys. Assumes the
       # homelab-ci role defined in aws-shared-infra (grants S3 for Pulumi state +
       # scoped IAM for homelab's app roles / cluster OIDC provider).
       - name: Configure AWS credentials (OIDC)
         if: github.ref == 'refs/heads/master'
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: arn:aws:iam::338337944728:role/homelab-ci
           aws-region: eu-west-1
@@ -77,7 +79,7 @@ jobs:
           PROD_ENV: ${{ secrets.PROD_ENV }}
       - id: later_runs_check
         name: Check for later runs
-        uses: fkirc/skip-duplicate-actions@v5.3.1
+        uses: fkirc/skip-duplicate-actions@b974a9395958c231af965b70070979a577efa578 # v5.3.2
         with:
           cancel_others: false
           skip_after_successful_duplicate: false

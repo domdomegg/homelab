@@ -5,7 +5,8 @@
         ":disableDependencyDashboard"
     ],
     "enabledManagers": [
-        "custom.regex"
+        "custom.regex",
+        "github-actions"
     ],
     "customManagers": [
         {
@@ -19,6 +20,24 @@
             "fileMatch": ["src/k8s/.*\\.ts$"],
             "matchStrings": ["renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\s+version: '(?<currentValue>[^']+)'"],
             "versioningTemplate": "helm"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+            "matchStrings": ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[a-z-]+: (?<currentValue>\\S+)"],
+            "extractVersionTemplate": "^v?(?<version>.*)$"
+        }
+    ],
+    "packageRules": [
+        {
+            "description": "Workflows run with AWS and cluster-admin credentials: pin actions to digests, and let new releases age before adopting them",
+            "matchManagers": ["github-actions"],
+            "pinDigests": true,
+            "minimumReleaseAge": "14 days"
+        },
+        {
+            "matchDepNames": ["pulumi/pulumi"],
+            "minimumReleaseAge": "14 days"
         }
     ],
     "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
