@@ -30,10 +30,10 @@ jobs:
         env:
           SERVICE: ${{ inputs.service }}
       - name: Setup WARP for IPv6 connectivity
-        uses: fscarmen/warp-on-actions@v1.1
+        uses: fscarmen/warp-on-actions@37ce1997e075435a827991dabcce1d080c1fe512 # v1.4
       # AWS access via GitHub OIDC federation — no stored AWS keys.
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: arn:aws:iam::338337944728:role/homelab-ci
           aws-region: eu-west-1

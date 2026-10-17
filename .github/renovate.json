@@ -5,7 +5,8 @@
         ":disableDependencyDashboard"
     ],
     "enabledManagers": [
-        "custom.regex"
+        "custom.regex",
+        "github-actions"
     ],
     "customManagers": [
         {
@@ -19,6 +20,26 @@
             "fileMatch": ["src/k8s/.*\\.ts$"],
             "matchStrings": ["renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\s+version: '(?<currentValue>[^']+)'"],
             "versioningTemplate": "helm"
+        },
+        {
+            "customType": "regex",
+            "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+            "matchStrings": ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[a-z-]+: (?<currentValue>\\S+)"],
+            "extractVersionTemplate": "^v?(?<version>.*)$"
+        }
+    ],
+    "minimumReleaseAge": "7 days",
+    "minimumReleaseAgeBehaviour": "timestamp-optional",
+    "packageRules": [
+        {
+            "description": "Workflows run with AWS and cluster-admin credentials: pin actions to commit SHAs",
+            "matchManagers": ["github-actions"],
+            "pinDigests": true
+        },
+        {
+            "description": "My own images: take updates immediately",
+            "matchPackageNames": ["ghcr.io/domdomegg/**"],
+            "minimumReleaseAge": null
         }
     ],
     "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",

@@ -10,16 +10,13 @@ jobs:
   renovate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    strategy:
-      matrix:
-        node-version: [20]
     env:
       CI: true
     steps:
       - name: Checkout ${{ github.sha }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Self-hosted Renovate
-        uses: renovatebot/github-action@v40.1.7
+        uses: renovatebot/github-action@6d26fcf0275dc65624cbc3d51fe78bc773f98321 # v46.3.6
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_ONBOARDING: false
