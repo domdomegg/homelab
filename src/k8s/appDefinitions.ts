@@ -2,7 +2,7 @@ import {type apps as appsTypes, type core} from '@pulumi/kubernetes/types/input'
 import {
 	haDataPvc, mosquittoConfigmap, mosquittoDataPvc, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
 	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, haMcpDataPvc,
-	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, adamconDataPvc, oidcDiscoveryConfigmap,
+	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, oidcDiscoveryConfigmap,
 	personalAgentDataPvc,
 } from './storage';
 import env from '../env/prod';
@@ -857,60 +857,6 @@ export const apps: AppDefinition[] = [
 			],
 		},
 		ingress: {host: `k8s-oidc.${env.BASE_DOMAIN}`, auth: false},
-	},
-	{
-		// AWS trusts tokens for this app's generated service account, named
-		// 'adamcon' after the app (role homelab-app-adamcon, SES-send only; see
-		// src/aws/adamconRole.ts) — renaming the k8s app changes the token's sub
-		// claim and breaks that trust policy, so keep the app name 'adamcon' even
-		// though the AWS role is prefixed homelab-app-*.
-		name: 'adamcon',
-		targetPort: 3000,
-		// Single replica on a RWO volume: replace, don't roll
-		strategy: {type: 'Recreate'},
-		spec: {
-			containers: [{
-				name: 'adamcon',
-				image: 'ghcr.io/domdomegg/adamcon:latest',
-				imagePullPolicy: 'Always',
-				env: [
-					// Next standalone binds to HOSTNAME, which k8s sets to the pod
-					// name (= the pod's IPv6 on this cluster) — leaving the IPv4
-					// service endpoint refusing connections. Bind both families.
-					{name: 'HOSTNAME', value: '::'},
-					{name: 'APP_ORIGIN', value: `https://adamcon.${env.BASE_DOMAIN}`},
-					{name: 'EMAIL_FROM', value: 'AdamCon <adamcon@adamjones.me>'},
-					{name: 'AWS_REGION', value: 'eu-west-1'},
-					{name: 'AWS_ROLE_ARN', value: 'arn:aws:iam::338337944728:role/homelab-app-adamcon'},
-					{name: 'AWS_WEB_IDENTITY_TOKEN_FILE', value: '/var/run/secrets/aws/token'},
-				],
-				volumeMounts: [
-					{name: 'adamcon-data-volume', mountPath: '/data'},
-					{name: 'aws-token', mountPath: '/var/run/secrets/aws', readOnly: true},
-				],
-			}],
-			volumes: [
-				{
-					name: 'adamcon-data-volume',
-					persistentVolumeClaim: {
-						claimName: adamconDataPvc.metadata.name,
-					},
-				},
-				{
-					name: 'aws-token',
-					projected: {
-						sources: [{
-							serviceAccountToken: {
-								audience: 'sts.amazonaws.com',
-								expirationSeconds: 3600,
-								path: 'token',
-							},
-						}],
-					},
-				},
-			],
-		},
-		ingress: {host: `adamcon.${env.BASE_DOMAIN}`, auth: false},
 	},
 	// Adam's personal agent: a long-running Claude Code session reachable over
 	// WhatsApp. The image is a general-purpose sandbox carrying no source — the
