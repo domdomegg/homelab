@@ -28,16 +28,18 @@
             "extractVersionTemplate": "^v?(?<version>.*)$"
         }
     ],
+    "minimumReleaseAge": "7 days",
+    "minimumReleaseAgeBehaviour": "timestamp-optional",
     "packageRules": [
         {
-            "description": "Workflows run with AWS and cluster-admin credentials: pin actions to digests, and let new releases age before adopting them",
+            "description": "Workflows run with AWS and cluster-admin credentials: pin actions to commit SHAs",
             "matchManagers": ["github-actions"],
-            "pinDigests": true,
-            "minimumReleaseAge": "14 days"
+            "pinDigests": true
         },
         {
-            "matchDepNames": ["pulumi/pulumi"],
-            "minimumReleaseAge": "14 days"
+            "description": "My own images: take updates immediately",
+            "matchPackageNames": ["ghcr.io/domdomegg/**"],
+            "minimumReleaseAge": null
         }
     ],
     "prBodyTemplate": "{{{header}}}{{{table}}}{{{warnings}}}{{{notes}}}{{{changelogs}}}",
