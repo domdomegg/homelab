@@ -683,7 +683,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'mcp-local-tunnel',
-				image: 'ghcr.io/domdomegg/mcp-local-tunnel:latest@sha256:f99255ecadfbe2540948f05e63f1e16f98a219e715e884fbe650b98d5b2210f2',
+				image: 'ghcr.io/domdomegg/mcp-local-tunnel:latest@sha256:9db948d93fa2e6af3ad9c68e4d4d069d41f4a3636becccab3156b0619023c5bd',
 				env: [{
 					name: 'MCP_LOCAL_TUNNEL_CONFIG',
 					value: JSON.stringify({
@@ -691,8 +691,6 @@ export const apps: AppDefinition[] = [
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						issuerUrl: `https://tunnel.mcp.${env.BASE_DOMAIN}`,
 						secret: env.MCP_LOCAL_TUNNEL_SECRET,
-						// Dual-stack; drop once the image defaults to it (mcp-local-tunnel#42)
-						host: '::',
 					}),
 				}],
 			}],
