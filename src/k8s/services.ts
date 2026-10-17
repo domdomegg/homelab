@@ -44,7 +44,9 @@ apps.forEach((app) => {
 			spec: {
 				type: 'ClusterIP',
 				selector: labels,
-				ipFamilyPolicy: 'RequireDualStack',
+				...(app.ipv4Only
+					? {ipFamilyPolicy: 'SingleStack', ipFamilies: ['IPv4']}
+					: {ipFamilyPolicy: 'RequireDualStack'}),
 				ports: [{
 					name: 'default',
 					port: 80,
@@ -54,12 +56,16 @@ apps.forEach((app) => {
 			metadata: {
 				name: `${app.name}-svc`,
 			},
-		}, {provider, dependsOn: [deployment]});
+		}, {
+			provider,
+			dependsOn: [deployment],
+			// A Service's primary IP family can't be changed in place
+			replaceOnChanges: ['spec.ipFamilies', 'spec.ipFamilyPolicy'],
+			deleteBeforeReplace: true,
+		});
 
 		if (app.ingress) {
-			// vouch-proxy only answers 401 or 200, so on a 401 Traefik itself sends the browser
-			// to vouch's login. That URL is static, so after logging in you land on the app's
-			// root rather than the exact page you asked for.
+			// authSigninURL is static, so after logging in you land on the app's root, not the page you asked for
 			const auth = app.ingress.auth
 				? new k8s.apiextensions.CustomResource(`${app.name}-auth`, {
 					apiVersion: 'traefik.io/v1alpha1',
@@ -69,13 +75,10 @@ apps.forEach((app) => {
 					},
 					spec: {
 						forwardAuth: {
-							// Server-side subrequest, so keep it in-cluster. Any *public* vouch
-							// hostname sends every auth check back out over the home uplink and
-							// in again via NAT loopback (v6) or the Oracle relay (v4), paying a
-							// TLS handshake on a hop that never leaves the node -- which made
-							// authenticated services hang for up to 60s whenever that path
-							// blipped. authSigninURL must stay public: it's a browser
-							// redirect, not a subrequest. No port here -- the svc listens on 80.
+							// In-cluster: via the public hostname, every auth check hairpins out
+							// through NAT or the relay, which made authenticated apps hang for up
+							// to 60s whenever that path blipped. authSigninURL is a browser
+							// redirect, so it has to be public.
 							address: 'http://vouch-proxy-svc.default.svc.cluster.local/validate',
 							authSigninURL: `https://vouch.${env.BASE_DOMAIN}/login?url=https://${app.ingress.host}/`,
 						},

@@ -41,10 +41,6 @@ export const traefik = new k8s.helm.v3.Release('traefik', {
 				},
 			},
 			websecure: {
-				http: {
-					// See retry below
-					middlewares: ['traefik-retry@kubernetescrd'],
-				},
 				transport: {
 					respondingTimeouts: {readTimeout: 0},
 				},
@@ -62,18 +58,3 @@ export const traefik = new k8s.helm.v3.Release('traefik', {
 		},
 	},
 }, {provider});
-
-// Traefik balances across every endpoint of a dual-stack Service, so for apps that only
-// bind IPv4 (e.g. vouch-proxy) half the connects are refused. Retry those on the next
-// endpoint. Only failed connects are retried, never a request that reached the app.
-new k8s.apiextensions.CustomResource('traefik-retry', {
-	apiVersion: 'traefik.io/v1alpha1',
-	kind: 'Middleware',
-	metadata: {
-		name: 'retry',
-		namespace: namespace.metadata.name,
-	},
-	spec: {
-		retry: {attempts: 3},
-	},
-}, {provider, dependsOn: [traefik]});
