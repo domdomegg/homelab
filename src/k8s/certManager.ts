@@ -1,6 +1,6 @@
 import * as k8s from '@pulumi/kubernetes';
 import {provider} from './provider';
-import {ingress} from './ingress';
+import {traefik} from './traefik';
 
 const namespace = new k8s.core.v1.Namespace('cert-manager-namespace', {
 	metadata: {
@@ -38,10 +38,10 @@ new k8s.apiextensions.CustomResource('cert-manager-issuer', {
 			solvers: [{
 				http01: {
 					ingress: {
-						ingressClassName: 'nginx',
+						ingressClassName: 'traefik',
 					},
 				},
 			}],
 		},
 	},
-}, {provider, dependsOn: [helmRelease, ingress]});
+}, {provider, dependsOn: [helmRelease, traefik]});

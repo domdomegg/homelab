@@ -211,6 +211,8 @@ export const apps: AppDefinition[] = [
 	{
 		name: 'esphome',
 		targetPort: 6052,
+		// Python's asyncio binds `::` as IPv6-only, so the dashboard can't listen on both
+		ipv4Only: true,
 		spec: {
 			containers: [{
 				name: 'esphome',
@@ -303,6 +305,8 @@ export const apps: AppDefinition[] = [
 						hassUrl: `https://${env.BASE_DOMAIN}`,
 						externalUrl: `https://oidc.${env.BASE_DOMAIN}`,
 						signingKey: env.HASS_OIDC_SIGNING_KEY,
+						// Dual-stack; drop once the image defaults to it (hass-oidc-provider#22)
+						host: '::',
 					}),
 				}],
 			}],
@@ -351,6 +355,8 @@ export const apps: AppDefinition[] = [
 		// up changes; drop the --from once upstream ships both.
 		name: 'google-workspace-mcp',
 		targetPort: 8000,
+		// Python's asyncio binds `::` as IPv6-only, and WORKSPACE_MCP_HOST can't ask for both
+		ipv4Only: true,
 		spec: {
 			containers: [{
 				name: 'google-workspace-mcp',
@@ -685,6 +691,8 @@ export const apps: AppDefinition[] = [
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						issuerUrl: `https://tunnel.mcp.${env.BASE_DOMAIN}`,
 						secret: env.MCP_LOCAL_TUNNEL_SECRET,
+						// Dual-stack; drop once the image defaults to it (mcp-local-tunnel#42)
+						host: '::',
 					}),
 				}],
 			}],
@@ -745,9 +753,7 @@ export const apps: AppDefinition[] = [
 							{name: 'slack', url: 'https://mcp.slack.com/mcp', clientId: '825862040501.10898174083287'},
 							{name: 'posthog', url: 'https://mcp.posthog.com/mcp'},
 						],
-						// Dual-stack bind. The default 0.0.0.0 is IPv4-only, and on this dual-stack
-						// cluster ingress-nginx tries the pod's IPv6 address first: 93% of requests
-						// (1522/1641 in one hour, 2026-08-23) paid a refused connect + retry.
+						// Dual-stack; the default 0.0.0.0 is IPv4-only
 						host: '::',
 						storage: '/app/data/mcp-aggregator.sqlite',
 						issuerUrl: `https://mcp.${env.BASE_DOMAIN}`,
@@ -880,4 +886,6 @@ type AppDefinition = {
 	spec: core.v1.PodSpec;
 	strategy?: appsTypes.v1.DeploymentStrategy;
 	ingress?: {host: string; auth: boolean};
+	/** For apps that can't listen on IPv6, so Traefik doesn't route half their requests to a dead endpoint */
+	ipv4Only?: boolean;
 };

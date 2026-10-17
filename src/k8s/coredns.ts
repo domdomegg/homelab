@@ -1,7 +1,7 @@
 import * as pulumi from '@pulumi/pulumi';
 import * as k8s from '@pulumi/kubernetes';
 import {provider} from './provider';
-import {ingress} from './ingress';
+import {traefik} from './traefik';
 import env from '../env/prod';
 
 // Loop our own public hostname back through the ingress, inside the cluster.
@@ -15,15 +15,15 @@ import env from '../env/prod';
 //
 // k3s CoreDNS imports `/etc/coredns/custom/*.override` into its main server block,
 // so this rewrite runs ahead of the kubernetes plugin: any name under BASE_DOMAIN is
-// answered as the ingress-nginx controller Service. Pods then reach nginx directly
-// on its cluster IP — same Host, TLS and routing rules as from outside, but no
-// dependence on the relay, the router's pinholes or what ddclient last published.
+// answered as the Traefik Service. Pods then reach Traefik directly on its cluster
+// IP — same Host, TLS and routing rules as from outside, but no dependence on the
+// relay, the router's pinholes or what ddclient last published.
 // Nothing is pinned: the Service name follows the Helm release, the address follows
 // the Service.
 const domain = env.BASE_DOMAIN.replace(/\./g, '\\.');
-// The chart names its controller Service `<fullname>-controller`, and fullname is the
-// release name when that already contains the chart name (it does: `ingress-nginx-…`).
-const controllerService = pulumi.interpolate`${ingress.status.name}-controller.${ingress.namespace}.svc.cluster.local`;
+// The chart names its Service `<fullname>`, and fullname is the release name when that
+// already contains the chart name (it does: `traefik-…`).
+const traefikService = pulumi.interpolate`${traefik.status.name}.${traefik.namespace}.svc.cluster.local`;
 
 export const corednsCustomConfigmap = new k8s.core.v1.ConfigMap('coredns-custom', {
 	metadata: {
@@ -32,7 +32,7 @@ export const corednsCustomConfigmap = new k8s.core.v1.ConfigMap('coredns-custom'
 	},
 	data: {
 		'home-domain.override': pulumi.interpolate`rewrite stop {
-  name regex (.*\\.)?${domain}\\.$ ${controllerService}.
+  name regex (.*\\.)?${domain}\\.$ ${traefikService}.
   answer auto
 }
 `,
