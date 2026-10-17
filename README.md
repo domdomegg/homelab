@@ -142,20 +142,50 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     WantedBy=shutdown.target
     ```
 
-    Run:
-    ```bash
-    curl -sfL https://get.k3s.io | sh -s - --disable=traefik --cluster-cidr=fd7d:4ce0:5b35:1::/64,10.42.0.0/16 --service-cidr=fd7d:4ce0:5b35:2::/112,10.43.0.0/16 --flannel-ipv6-masq
-    sudo systemctl enable shutdown-k3s.service
-    ```
-
-    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). We disable traefik because we use ingress-nginx instead.
-
-    The boot-relevant flags (`--disable=traefik`, `--flannel-ipv6-masq`) are persisted in `/etc/rancher/k3s/config.yaml` so they survive re-running the installer (see [Upgrading k3s](#upgrading-k3s) below):
+    All k3s server settings live in `/etc/rancher/k3s/config.yaml`, so the installer never needs flags (see [Upgrading k3s](#upgrading-k3s) below). Create it before installing:
     ```yaml
+    node-ip: <node's public IPv6>,<node's LAN IPv4>
+    kube-apiserver-arg:
+      # Let GitHub Actions authenticate with OIDC tokens (see src/k8s/ciRbac.ts)
+      - authentication-config=/etc/rancher/k3s/github-oidc-auth.yaml
+      # Let AWS federate against service account tokens (see src/aws/clusterOidcProvider.ts)
+      - service-account-issuer=https://k8s-oidc.home.adamjones.me
+      - service-account-issuer=https://kubernetes.default.svc.cluster.local
     disable:
       - traefik
     flannel-ipv6-masq: true
+    cluster-cidr: fd7d:4ce0:5b35:1::/64,10.42.0.0/16
+    service-cidr: fd7d:4ce0:5b35:2::/112,10.43.0.0/16
     ```
+
+    And `/etc/rancher/k3s/github-oidc-auth.yaml`:
+    ```yaml
+    apiVersion: apiserver.config.k8s.io/v1
+    kind: AuthenticationConfiguration
+    jwt:
+      - issuer:
+          url: https://token.actions.githubusercontent.com
+          audiences:
+            - homelab-k8s
+        claimMappings:
+          username:
+            # Map the GitHub token subject to a k8s username. Only the exact
+            # repo+branch below is granted RBAC; other subs authenticate but have
+            # no permissions.
+            claim: sub
+            prefix: "github:"
+        claimValidationRules:
+          - claim: sub
+            requiredValue: "repo:domdomegg/homelab:ref:refs/heads/master"
+    ```
+
+    Then run:
+    ```bash
+    curl -sfL https://get.k3s.io | sh -s -
+    sudo systemctl enable shutdown-k3s.service
+    ```
+
+    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). The CIDRs can't be changed after the cluster is created. We disable traefik because we use ingress-nginx instead.
 12. Set up Bluetooth for Home Assistant (see [official docs](https://www.home-assistant.io/integrations/bluetooth)). In short on my device it was:
     ```bash
     sudo apt install -y bluez
@@ -185,7 +215,7 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
 k3s does not auto-update, so it needs upgrading manually (an EOL, internet-facing apiserver is a real risk). Kubernetes only supports **one minor version at a time**, so walk it up one minor per hop (e.g. `v1.33.x` → `v1.34.x` → …), verifying health between each:
 
 ```bash
-# On the XPS. Because the flags live in config.yaml, the upgrade command needs NO cli flags:
+# On the XPS. All settings live in config.yaml, so the upgrade command takes no flags:
 curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.34.9+k3s1 sh -s -
 ```
 
@@ -193,12 +223,5 @@ After each hop verify: `kubectl get nodes` is `Ready`, `kubectl get servicecidr`
 
 Two gotchas, both learned the hard way:
 
-- **Keep the server flags in exactly one place.** Re-running the installer with only `INSTALL_K3S_VERSION` regenerates a bare systemd unit and drops any flags passed on the original install — which is why they now live in `config.yaml`. Don't *also* pass them on the upgrade command.
-- **Never put `cluster-cidr` / `service-cidr` in `config.yaml`.** They are creation-only (already baked into the datastore on an existing cluster). If both `config.yaml` and the systemd unit's `ExecStart` carry them, k3s concatenates the two sources → `--service-cluster-ip-range must not contain more than two entries` → k3s refuses to start. On k3s 1.33+ a mismatched/default service CIDR also makes the new ServiceCIDR controller reject every existing Service (`not within any service CIDR`) and crash-loop the apiserver.
-
-### Useful server admin commands
-
-These commands will work provided you've followed the steps above to set up the server.
-
-- SSH into the server: `ssh xps`
-- Run an ad-hoc shell inside the k8s cluster (so you can ping or wget cluster ips etc.): `kubectl run -i --tty --rm --restart=Never debug-shell --image=busybox -- /bin/sh`
+- **Never pass server flags to the installer.** Re-running it regenerates the systemd unit from only the flags given on that run, so flags from an earlier install silently disappear. Keep every setting in `config.yaml` instead.
+- **Keep the cluster and service CIDRs exactly as the cluster was created.** k3s needs them on every start (via `config.yaml`). If they go missing or change, k3s falls back to defaults that don't match existing Services, and on 1.33+ the ServiceCIDR controller rejects every Service (`not within any service CIDR`) and crash-loops the apiserver. If they're set in both `config.yaml` and the unit's `ExecStart`, k3s concatenates them (`--service-cluster-ip-range must not contain more than two entries`) and refuses to start.
