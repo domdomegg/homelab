@@ -30,7 +30,6 @@ jobs:
         env:
           SERVICE: ${{ inputs.service }}
       - name: Setup WARP for IPv6 connectivity
-        timeout-minutes: 3 # the action occasionally hangs; fail fast instead
         uses: fscarmen/warp-on-actions@37ce1997e075435a827991dabcce1d080c1fe512 # v1.4
       # AWS access via GitHub OIDC federation — no stored AWS keys.
       - name: Configure AWS credentials (OIDC)
