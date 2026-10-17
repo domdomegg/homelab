@@ -298,15 +298,13 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'hass-oidc-provider',
-				image: 'ghcr.io/domdomegg/hass-oidc-provider:latest@sha256:d6f00d0418be30621781794f56c1b2be54c4d663e2a4f583f4bebcb75f883390',
+				image: 'ghcr.io/domdomegg/hass-oidc-provider:latest@sha256:63c061a5bf6b6cfd3dad759afed4e49f334e4ae13e8d54f4676e89c4d2916bbf',
 				env: [{
 					name: 'HASS_OIDC_CONFIG',
 					value: JSON.stringify({
 						hassUrl: `https://${env.BASE_DOMAIN}`,
 						externalUrl: `https://oidc.${env.BASE_DOMAIN}`,
 						signingKey: env.HASS_OIDC_SIGNING_KEY,
-						// Dual-stack; drop once the image defaults to it (hass-oidc-provider#22)
-						host: '::',
 					}),
 				}],
 			}],
