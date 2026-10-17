@@ -185,7 +185,7 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     sudo systemctl enable shutdown-k3s.service
     ```
 
-    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). The CIDRs can't be changed after the cluster is created. We disable traefik because we use ingress-nginx instead.
+    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). The CIDRs can't be changed after the cluster is created. We disable the bundled Traefik so we can install our own via Helm, version-pinned and configured in [`traefik.ts`](./src/k8s/traefik.ts).
 12. Set up Bluetooth for Home Assistant (see [official docs](https://www.home-assistant.io/integrations/bluetooth)). In short on my device it was:
     ```bash
     sudo apt install -y bluez
