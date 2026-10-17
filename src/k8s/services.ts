@@ -64,7 +64,9 @@ apps.forEach((app) => {
 						'cert-manager.io/cluster-issuer': 'cert-manager-issuer',
 						...(app.ingress.auth
 							? {
-								'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$http_host$request_uri`,
+								// $host rather than $http_host: Traefik's NGINX provider reads $http_* from
+								// request headers, and Go moves Host out of those, so it would come out empty.
+								'nginx.ingress.kubernetes.io/auth-signin': `https://vouch.${env.BASE_DOMAIN}/login?url=$scheme://$host$request_uri`,
 								// Server-side subrequest, so keep it in-cluster. Any *public* vouch
 								// hostname sends every auth check back out over the home uplink and
 								// in again via NAT loopback (v6) or the Oracle relay (v4), paying a

@@ -25,8 +25,9 @@ export const ingress = new k8s.helm.v3.Release('ingress-nginx', {
 				// https://github.com/kubernetes/ingress-nginx/issues/11176
 				'strict-validate-path-type': false,
 			},
+			// Created in traefik.ts instead, so it outlives this chart
 			ingressClassResource: {
-				default: 'true',
+				enabled: false,
 			},
 			service: {
 				ipFamilies: ['IPv6'],

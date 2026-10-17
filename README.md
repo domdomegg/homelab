@@ -70,6 +70,37 @@ From an IPv4-only network:
 - **Pulumi deploys** work over the same tunnel: write the server override
   into a copy of your kubeconfig and run `KUBECONFIG=<copy> npm run deploy:prod`.
 
+## Testing Traefik alongside ingress-nginx
+
+While migrating, [Traefik](./src/k8s/traefik.ts) serves the same Ingresses as ingress-nginx but only on a ClusterIP, so public traffic is untouched. Test it from a pod, pinning each hostname to Traefik with `--resolve` (in-cluster DNS still sends `*.home.adamjones.me` to ingress-nginx):
+
+```sh
+T=$(kubectl get svc -n traefik -o jsonpath='{.items[0].spec.clusterIP}')
+kubectl run -i --tty --rm --restart=Never traefik-test --image=curlimages/curl --env="T=$T" --command -- sh
+
+# Inside the pod. r <host> pins that host's 80/443 to Traefik.
+r() { echo "--resolve $1:443:[$T] --resolve $1:80:[$T]"; }
+code() { curl -s -o /dev/null -w '%{http_code}\n' "$@"; }
+D=home.adamjones.me
+
+curl -sI $(r $D) http://$D/                                   # 308 to https://
+code $(r $D) https://$D/                                      # 200 (Home Assistant), and the cert verifies
+curl -sI $(r z2m.$D) https://z2m.$D/                          # 302 to https://vouch.$D/login?url=https://z2m.$D/&rd=...
+code $(r z2m.$D) -H 'Cookie: VouchCookie=<from browser>' https://z2m.$D/       # 200
+curl -si $(r gmail.mcp.$D) -X POST https://gmail.mcp.$D/mcp  # 401 with WWW-Authenticate
+curl -s $(r gmail.mcp.$D) https://gmail.mcp.$D/.well-known/oauth-authorization-server   # JSON
+curl -s $(r oidc.$D) https://oidc.$D/.well-known/openid-configuration                     # JSON
+curl -s $(r k8s-oidc.$D) https://k8s-oidc.$D/.well-known/openid-configuration             # JSON
+
+# Websocket: expect 101 then HA's auth_required message, and the connection still open after 60s
+timeout 90 curl -i -N --http1.1 $(r $D) -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
+  -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' https://$D/api/websocket
+curl -si --http1.1 $(r tunnel.mcp.$D) -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
+  -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' https://tunnel.mcp.$D/ws   # same status as via nginx (no token)
+```
+
+Compare anything surprising against ingress-nginx by dropping the `$(r ...)`. Traefik's logs: `kubectl logs -n traefik -l app.kubernetes.io/name=traefik`.
+
 ## Manual setup notes
 
 To get a kubernetes cluster that you can run this all on, we install Ubuntu server + k3s. Full instructions:
