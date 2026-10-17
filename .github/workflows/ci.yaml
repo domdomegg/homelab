@@ -67,6 +67,17 @@ jobs:
           K8S_TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=homelab-k8s" | python3 -c 'import sys,json;print(json.load(sys.stdin)["value"])')
 
+          # Pin the apiserver host to its AAAA record. WARP gives the runner a
+          # ULA IPv6 source (fd01::/8), so Go's RFC 6724 sort puts the A record
+          # first, and kubectl/Pulumi dial the Oracle relay on IPv4. The relay
+          # only forwards 80/443, but WARP's edge still completes the TCP
+          # handshake on 6443, so Go never falls back to IPv6 and stalls with
+          # "TLS handshake timeout".
+          KUBE_HOST=$(python3 -c 'import sys,urllib.parse;print(urllib.parse.urlparse(sys.argv[1]).hostname)' "$KUBE_SERVER")
+          KUBE_AAAA=$(dig +short AAAA "$KUBE_HOST" | grep : | head -n1)
+          if [ -z "$KUBE_AAAA" ]; then echo "No AAAA record for $KUBE_HOST"; exit 1; fi
+          echo "$KUBE_AAAA $KUBE_HOST" | sudo tee -a /etc/hosts >/dev/null
+
           mkdir -p ~/.kube
           kubectl config set-cluster homelab --server="$KUBE_SERVER" --tls-server-name=kubernetes >/dev/null
           echo "$KUBE_CA_DATA" | base64 -d > /tmp/k8s-ca.crt
