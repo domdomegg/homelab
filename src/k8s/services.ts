@@ -1,7 +1,7 @@
 import * as k8s from '@pulumi/kubernetes';
 import {apps} from './appDefinitions';
 import {provider} from './provider';
-import {ingress} from './ingress';
+import {traefik} from './traefik';
 import env from '../env/prod';
 
 apps.forEach((app) => {
@@ -103,7 +103,7 @@ apps.forEach((app) => {
 						},
 					})),
 				},
-			}, {provider, dependsOn: [ingress]});
+			}, {provider, dependsOn: [traefik]});
 		}
 	}
 });

@@ -1,4 +1,3 @@
-import './ingress';
 import './traefik';
 import './storage';
 import './coredns';

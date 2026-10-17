@@ -70,9 +70,9 @@ From an IPv4-only network:
 - **Pulumi deploys** work over the same tunnel: write the server override
   into a copy of your kubeconfig and run `KUBECONFIG=<copy> npm run deploy:prod`.
 
-## Testing Traefik alongside ingress-nginx
+## Checking the ingress
 
-While migrating, [Traefik](./src/k8s/traefik.ts) serves the same Ingresses as ingress-nginx but only on a ClusterIP, so public traffic is untouched. Test it from a pod, pinning each hostname to Traefik with `--resolve` (in-cluster DNS still sends `*.home.adamjones.me` to ingress-nginx):
+[Traefik](./src/k8s/traefik.ts) serves every app's Ingress, via its [Kubernetes Ingress NGINX provider](https://doc.traefik.io/traefik/reference/install-configuration/providers/kubernetes/kubernetes-ingress-nginx/) so the `nginx.ingress.kubernetes.io/*` annotations keep working. To check it from a pod, pinning each hostname to Traefik's cluster IP with `--resolve` (in-cluster DNS already points there via the [CoreDNS rewrite](./src/k8s/coredns.ts), but this rules it out):
 
 ```sh
 T=$(kubectl get svc -n traefik -o jsonpath='{.items[0].spec.clusterIP}')
@@ -96,10 +96,10 @@ curl -s $(r k8s-oidc.$D) https://k8s-oidc.$D/.well-known/openid-configuration   
 timeout 90 curl -i -N --http1.1 $(r $D) -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
   -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' https://$D/api/websocket
 curl -si --http1.1 $(r tunnel.mcp.$D) -H 'Connection: Upgrade' -H 'Upgrade: websocket' \
-  -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' https://tunnel.mcp.$D/ws   # same status as via nginx (no token)
+  -H 'Sec-WebSocket-Version: 13' -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' https://tunnel.mcp.$D/ws   # an auth error from the relay (no token), not a 404
 ```
 
-Compare anything surprising against ingress-nginx by dropping the `$(r ...)`. Traefik's logs: `kubectl logs -n traefik -l app.kubernetes.io/name=traefik`.
+Traefik's logs: `kubectl logs -n traefik -l app.kubernetes.io/name=traefik`.
 
 ## Manual setup notes
 
@@ -179,7 +179,7 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     sudo systemctl enable shutdown-k3s.service
     ```
 
-    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). We disable traefik because we use ingress-nginx instead.
+    Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). We disable the bundled Traefik because we install our own via Helm, version-pinned and configured in code (see [`traefik.ts`](./src/k8s/traefik.ts)).
 
     The boot-relevant flags (`--disable=traefik`, `--flannel-ipv6-masq`) are persisted in `/etc/rancher/k3s/config.yaml` so they survive re-running the installer (see [Upgrading k3s](#upgrading-k3s) below):
     ```yaml

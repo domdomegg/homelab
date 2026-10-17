@@ -749,7 +749,7 @@ export const apps: AppDefinition[] = [
 							{name: 'posthog', url: 'https://mcp.posthog.com/mcp'},
 						],
 						// Dual-stack bind. The default 0.0.0.0 is IPv4-only, and on this dual-stack
-						// cluster ingress-nginx tries the pod's IPv6 address first: 93% of requests
+						// cluster the ingress tries the pod's IPv6 address first: 93% of requests
 						// (1522/1641 in one hour, 2026-08-23) paid a refused connect + retry.
 						host: '::',
 						storage: '/app/data/mcp-aggregator.sqlite',

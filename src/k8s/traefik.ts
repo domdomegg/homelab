@@ -1,13 +1,9 @@
 import * as k8s from '@pulumi/kubernetes';
 import {provider} from './provider';
-import {ingress} from './ingress';
 
-// Traefik replaces ingress-nginx (retired upstream). Its Kubernetes Ingress NGINX
+// Traefik replaced ingress-nginx (retired upstream). Its Kubernetes Ingress NGINX
 // provider reads the same Ingress objects and nginx.ingress.kubernetes.io/*
 // annotations, so the Ingresses in services.ts work unchanged under either controller.
-//
-// Currently running alongside ingress-nginx on a ClusterIP only, so it can be tested
-// in-cluster (see README) before it takes over the node's 80/443.
 
 const namespace = new k8s.core.v1.Namespace('traefik-namespace', {
 	metadata: {
@@ -15,12 +11,10 @@ const namespace = new k8s.core.v1.Namespace('traefik-namespace', {
 	},
 }, {provider});
 
-// Shared by both controllers while they run side by side: ingress-nginx and Traefik's
-// NGINX provider both select IngressClasses by this controller value. Owned here rather
-// than by the ingress-nginx chart so it survives that chart's removal. Our own Ingresses
-// use the kubernetes.io/ingress.class annotation, which needs no IngressClass object;
-// this is for cert-manager's solver Ingresses (ingressClassName) and as the default.
-// Created after the ingress-nginx chart has dropped its own IngressClass of the same name.
+// The NGINX provider picks up IngressClasses with ingress-nginx's controller value. Our
+// own Ingresses use the kubernetes.io/ingress.class annotation, which needs no
+// IngressClass object; this is for cert-manager's solver Ingresses (ingressClassName)
+// and as the default.
 export const ingressClass = new k8s.networking.v1.IngressClass('nginx-ingress-class', {
 	metadata: {
 		name: 'nginx',
@@ -31,7 +25,7 @@ export const ingressClass = new k8s.networking.v1.IngressClass('nginx-ingress-cl
 	spec: {
 		controller: 'k8s.io/ingress-nginx',
 	},
-}, {provider, dependsOn: [ingress]});
+}, {provider});
 
 export const traefik = new k8s.helm.v3.Release('traefik', {
 	chart: 'traefik',
@@ -43,6 +37,9 @@ export const traefik = new k8s.helm.v3.Release('traefik', {
 	namespace: namespace.metadata.name,
 	// Only for the IngressRoute etc. CRD provider, which we don't use
 	skipCrds: true,
+	// Don't wait for the LoadBalancer address: when taking over from ingress-nginx, klipper
+	// can't bind 80/443 until that LoadBalancer is gone, and Pulumi only deletes it after this.
+	skipAwait: true,
 	values: {
 		providers: {
 			kubernetesIngressNGINX: {
@@ -50,6 +47,8 @@ export const traefik = new k8s.helm.v3.Release('traefik', {
 				// The 60s default (as in nginx) drops idle websockets (HA, tunnel.mcp.*) and SSE streams
 				proxyReadTimeout: 3600,
 				proxySendTimeout: 3600,
+				// Show this Service's address on the Ingresses, like ingress-nginx did
+				publishService: {enabled: true},
 			},
 			// Would otherwise route the same Ingresses a second time
 			kubernetesIngress: {enabled: false},
@@ -73,9 +72,11 @@ export const traefik = new k8s.helm.v3.Release('traefik', {
 				},
 			},
 		},
+		// klipper (k3s servicelb) binds 80/443 on the node. The IPv4 relay forwards to the
+		// node's IPv6, so IPv6 is what matters publicly; IPv4 helps in-cluster clients.
 		service: {
 			spec: {
-				type: 'ClusterIP',
+				type: 'LoadBalancer',
 				ipFamilyPolicy: 'PreferDualStack',
 				ipFamilies: ['IPv6', 'IPv4'],
 			},
