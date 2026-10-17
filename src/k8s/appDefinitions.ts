@@ -19,17 +19,6 @@ const execWrapper = 'exec node /app/dist/index.js';
 
 export const apps: AppDefinition[] = [
 	{
-		name: 'nginx',
-		targetPort: 80,
-		spec: {
-			containers: [{
-				name: 'nginx',
-				image: 'nginx',
-			}],
-		},
-		ingress: {host: `nginx.${env.BASE_DOMAIN}`, auth: true},
-	},
-	{
 		name: 'ha',
 		targetPort: 8123,
 		spec: {
