@@ -648,7 +648,7 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `whatsapp.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// Barcode Scanner MCP (no auth, direct HTTP)
+	// Barcode Scanner MCP (no auth). No public ingress: only reachable via the aggregator.
 	{
 		name: 'barcode-scanner-mcp',
 		targetPort: 3000,
@@ -662,12 +662,10 @@ export const apps: AppDefinition[] = [
 				],
 			}],
 		},
-		ingress: {host: `barcode-scanner.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// Benepass MCP (no auth, direct HTTP — server is fully stateless, every tool call carries
-	// its own refresh_token. Aggregator inclusion is fine because the aggregator is OIDC-gated;
-	// the direct ingress is the only public surface either way.)
+	// Benepass MCP (no auth — server is fully stateless, every tool call carries its own
+	// refresh_token). No public ingress: only reachable in-cluster, via the OIDC-gated aggregator.
 	{
 		name: 'benepass-mcp',
 		targetPort: 3000,
@@ -681,7 +679,6 @@ export const apps: AppDefinition[] = [
 				],
 			}],
 		},
-		ingress: {host: `benepass.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
 	// MCP Local Tunnel relay (bridges agent WebSocket connections to MCP endpoint)
