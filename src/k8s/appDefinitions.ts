@@ -783,17 +783,6 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 	{
-		name: 'pairdrop',
-		targetPort: 3000,
-		spec: {
-			containers: [{
-				name: 'pairdrop',
-				image: 'ghcr.io/schlagmichdoch/pairdrop:latest@sha256:c4b30977264a76e335740089e693a52a0d0d616330dec7f93c7b96beef7b4a02',
-			}],
-		},
-		ingress: {host: `pairdrop.${env.BASE_DOMAIN}`, auth: true},
-	},
-	{
 		// Serves the cluster's OIDC discovery documents (see
 		// oidcDiscoveryConfigmap in storage.ts) so AWS IAM can federate against
 		// service account tokens.
