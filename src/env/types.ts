@@ -11,6 +11,8 @@ export type Env = {
 
 	/** ECDSA P-256 JWK signing key for hass-oidc-provider */
 	HASS_OIDC_SIGNING_KEY: string;
+	/** oauth2-proxy session cookie encryption key, from `openssl rand -base64 32 | tr -- '+/' '-_'` */
+	OAUTH2_PROXY_COOKIE_SECRET: string;
 
 	/** Google OAuth client ID shared across all Google MCP servers */
 	GOOGLE_MCP_CLIENT_ID: string;

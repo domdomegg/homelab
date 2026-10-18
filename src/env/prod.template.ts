@@ -8,6 +8,7 @@ const env: Env = {
 	PORKBUN_SECRET_API_KEY: 'sk1_abcdef',
 
 	HASS_OIDC_SIGNING_KEY: '{"kty":"EC","crv":"P-256","x":"...","y":"...","d":"..."}',
+	OAUTH2_PROXY_COOKIE_SECRET: '',
 
 	GOOGLE_MCP_CLIENT_ID: '',
 	GOOGLE_MCP_CLIENT_SECRET: '',

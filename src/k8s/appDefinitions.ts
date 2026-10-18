@@ -172,41 +172,43 @@ export const apps: AppDefinition[] = [
 			],
 		},
 	},
+	// Traefik ForwardAuth target for apps with `ingress.auth`. Unauthenticated requests get
+	// a 302 straight to login, carrying the original URL (from X-Forwarded-*) to return to.
 	{
-		name: 'vouch-proxy',
-		targetPort: 9090,
+		name: 'oauth2-proxy',
+		targetPort: 4180,
 		spec: {
 			containers: [{
-				name: 'vouch-proxy',
-				image: 'quay.io/vouch/vouch-proxy:latest@sha256:b1f82c00eb5b154aeb9f58a7c846a73ff9ae683fe4e51953f8fa188baa50006f',
+				name: 'oauth2-proxy',
+				image: 'quay.io/oauth2-proxy/oauth2-proxy:v7.15.5@sha256:8498b0d0ef0a7b29686414000a08aee467f02d0299c9ed1e006a8f33fc017916',
+				args: [
+					'--http-address=:4180',
+					'--provider=oidc',
+					`--oidc-issuer-url=https://oidc.${env.BASE_DOMAIN}`,
+					'--client-id=oauth2-proxy',
+					// hass-oidc-provider clients are public (PKCE, no secret), but oauth2-proxy insists on one
+					'--client-secret=unused',
+					'--code-challenge-method=S256',
+					// hass-oidc-provider issues no email claim, so identify users by HA user id
+					'--oidc-email-claim=sub',
+					'--skip-claims-from-profile-url',
+					'--email-domain=*',
+					`--redirect-url=https://auth-proxy.${env.BASE_DOMAIN}/oauth2/callback`,
+					// Covers both the apps and the callback host, so one login works everywhere
+					`--cookie-domain=.${env.BASE_DOMAIN}`,
+					`--whitelist-domain=.${env.BASE_DOMAIN}`,
+					'--cookie-secure',
+					'--reverse-proxy',
+					'--upstream=static://202',
+					'--skip-provider-button',
+				],
 				env: [{
-					name: 'VOUCH_ALLOWALLUSERS',
-					value: 'true',
-				}, {
-					name: 'VOUCH_COOKIE_DOMAIN',
-					value: env.BASE_DOMAIN,
-				}, {
-					name: 'VOUCH_LISTEN',
-					value: '0.0.0.0',
-				}, {
-					name: 'OAUTH_PROVIDER',
-					value: 'homeassistant',
-				}, {
-					name: 'OAUTH_CLIENT_ID',
-					value: `https://vouch.${env.BASE_DOMAIN}`,
-				}, {
-					name: 'OAUTH_CALLBACK_URL',
-					value: `https://vouch.${env.BASE_DOMAIN}/auth`,
-				}, {
-					name: 'OAUTH_AUTH_URL',
-					value: `https://${env.BASE_DOMAIN}/auth/authorize`,
-				}, {
-					name: 'OAUTH_TOKEN_URL',
-					value: `https://${env.BASE_DOMAIN}/auth/token`,
+					name: 'OAUTH2_PROXY_COOKIE_SECRET',
+					value: env.OAUTH2_PROXY_COOKIE_SECRET,
 				}],
 			}],
 		},
-		ingress: {host: `vouch.${env.BASE_DOMAIN}`, auth: false},
+		ingress: {host: `auth-proxy.${env.BASE_DOMAIN}`, auth: false},
 	},
 	{
 		name: 'esphome',
