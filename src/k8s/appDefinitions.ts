@@ -351,19 +351,18 @@ export const apps: AppDefinition[] = [
 	{
 		// Runs Adam's fork at a pinned commit rather than the PyPI release: it carries the
 		// generic api_call tool (upstream PR taylorwilsdon/google_workspace_mcp#885, still
-		// open) rebased onto v1.25.0, plus WORKSPACE_MCP_EXTRA_SCOPES. Bump the SHA to pick
-		// up changes; drop the --from once upstream ships both.
+		// open) rebased onto v1.25.0, plus WORKSPACE_MCP_EXTRA_SCOPES and a fix to listen on
+		// both IPv4 and IPv6 by default (upstream PR taylorwilsdon/google_workspace_mcp#1269).
+		// Bump the SHA to pick up changes; drop the --from once upstream ships all three.
 		name: 'google-workspace-mcp',
 		targetPort: 8000,
-		// Python's asyncio binds `::` as IPv6-only, and WORKSPACE_MCP_HOST can't ask for both
-		ipv4Only: true,
 		spec: {
 			containers: [{
 				name: 'google-workspace-mcp',
 				// uv + python baked in: the previous node image ran apk add + pip install uv on
 				// every boot, and a DNS blip mid-install crashed the pod on 2026-08-20.
 				image: 'ghcr.io/astral-sh/uv:python3.12-alpine@sha256:a57a1dd942a83dc96d338f7479be4b4cbca018c476eae7e6f3f1d3603e90aaf8',
-				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/f7020a0a6f05a4c01e12b8423965cf92067c27f6.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
+				command: ['uvx', '--from', 'https://github.com/domdomegg/google_workspace_mcp/archive/369427fb8eafc919c2cdf3c9f706af5779e12ceb.zip', 'workspace-mcp', '--transport', 'streamable-http', '--tool-tier', 'complete'],
 				securityContext: {runAsUser: 0},
 				env: [
 					{name: 'MCP_ENABLE_OAUTH21', value: 'true'},
