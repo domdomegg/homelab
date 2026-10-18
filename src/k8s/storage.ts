@@ -62,8 +62,7 @@ export const mosquittoConfigmap = new k8s.core.v1.ConfigMap('mosquitto-configmap
 persistence true
 persistence_location /mosquitto/data/
 allow_anonymous true
-listener 1883 0.0.0.0
-listener 1883 ::1
+listener 1883
 `,
 	},
 }, {provider});
