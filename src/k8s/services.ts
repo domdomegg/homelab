@@ -25,7 +25,7 @@ apps.forEach((app) => {
 			replicas: 1,
 			...(app.strategy ? {strategy: app.strategy} : {}),
 			template: {
-				metadata: {labels},
+				metadata: {labels, ...(app.podAnnotations ? {annotations: app.podAnnotations} : {})},
 				spec: {
 					serviceAccountName: serviceAccount.metadata.name,
 					// Identity without credentials: don't mount the k8s API token by
