@@ -104,42 +104,6 @@ export const zigbee2mqttDataPvc = new k8s.core.v1.PersistentVolumeClaim('zigbee2
 	},
 }, {provider, replaceOnChanges: ['*'], deleteBeforeReplace: true});
 
-export const zigbee2mqttConfigmap = new k8s.core.v1.ConfigMap('zigbee2mqtt-configmap', {
-	metadata: {
-		name: 'zigbee2mqtt-configmap',
-	},
-	data: {
-		// Keep config up to date with https://github.com/Koenkk/zigbee2mqtt/blob/master/data/configuration.yaml
-		'configuration.yaml': `# This file is managed from K8s
-
-# Home Assistant integration (MQTT discovery)
-# https://www.zigbee2mqtt.io/guide/usage/integrations/home_assistant.html
-homeassistant: true
-
-# Only enable joining when manually pairing - not all the time
-# See https://www.zigbee2mqtt.io/guide/usage/pairing_devices.html
-permit_join: false
-
-mqtt:
-  base_topic: zigbee2mqtt
-  server: 'mqtt://mosquitto-svc:80'
-
-serial:
-  adapter: zstack
-  # Location of adapter
-  port: /dev/ttyUSB0
-
-frontend:
-  port: 8080
-
-# Store other config in other files, to support this file being readonly
-# https://github.com/Koenkk/zigbee2mqtt/issues/2071
-devices: devices.yaml
-groups: groups.yaml
-`,
-	},
-}, {provider});
-
 export const ddclientConfigmap = new k8s.core.v1.ConfigMap('ddclient-configmap', {
 	metadata: {
 		name: 'ddclient-configmap',

@@ -1,6 +1,8 @@
+import {createHash} from 'node:crypto';
+import type * as pulumi from '@pulumi/pulumi';
 import {type apps as appsTypes, type core} from '@pulumi/kubernetes/types/input';
 import {
-	haDataPvc, mosquittoConfigmap, mosquittoDataPvc, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
+	haDataPvc, haConfigmap, mosquittoConfigmap, mosquittoDataPvc, ddclientConfigmap, zigbee2mqttDataPvc, esphomeDataPvc, whisperDataPvc,
 	mcpAggregatorDataPvc, starlingBankMcpDataPvc, openfoodfactsMcpDataPvc, olioVolunteerMcpDataPvc, haMcpDataPvc,
 	googleWorkspaceMcpDataPvc, whatsappMcpDataPvc, airtableMcpDataPvc, oidcDiscoveryConfigmap,
 	personalAgentDataPvc,
@@ -21,6 +23,10 @@ export const apps: AppDefinition[] = [
 	{
 		name: 'ha',
 		targetPort: 8123,
+		// subPath mounts don't pick up ConfigMap changes, so restart HA when it changes
+		podAnnotations: {
+			'checksum/config': haConfigmap.data.apply((data) => createHash('sha256').update(JSON.stringify(data)).digest('hex')),
+		},
 		spec: {
 			// Required for AF_BLUETOOTH sockets — they're scoped to the network namespace,
 			// so even a privileged pod can't open HCI sockets without host networking.
@@ -39,6 +45,12 @@ export const apps: AppDefinition[] = [
 						mountPath: '/config',
 					},
 					{
+						name: 'ha-configmap-volume',
+						mountPath: '/config/configuration.yaml',
+						subPath: 'configuration.yaml',
+						readOnly: true,
+					},
+					{
 						name: 'ha-dbus',
 						mountPath: '/run/dbus',
 						readOnly: true,
@@ -50,6 +62,12 @@ export const apps: AppDefinition[] = [
 					name: 'ha-data-volume',
 					persistentVolumeClaim: {
 						claimName: haDataPvc.metadata.name,
+					},
+				},
+				{
+					name: 'ha-configmap-volume',
+					configMap: {
+						name: haConfigmap.metadata.name,
 					},
 				},
 				// For Bluetooth integration
@@ -113,6 +131,16 @@ export const apps: AppDefinition[] = [
 				securityContext: {
 					privileged: true,
 				},
+				// Z2M persists these into its configuration.yaml on startup
+				env: [
+					{name: 'ZIGBEE2MQTT_CONFIG_HOMEASSISTANT_ENABLED', value: 'true'},
+					{name: 'ZIGBEE2MQTT_CONFIG_MQTT_BASE_TOPIC', value: 'zigbee2mqtt'},
+					{name: 'ZIGBEE2MQTT_CONFIG_MQTT_SERVER', value: 'mqtt://mosquitto-svc:80'},
+					{name: 'ZIGBEE2MQTT_CONFIG_SERIAL_ADAPTER', value: 'zstack'},
+					{name: 'ZIGBEE2MQTT_CONFIG_SERIAL_PORT', value: '/dev/ttyUSB0'},
+					{name: 'ZIGBEE2MQTT_CONFIG_FRONTEND_ENABLED', value: 'true'},
+					{name: 'ZIGBEE2MQTT_CONFIG_FRONTEND_PORT', value: '8080'},
+				],
 				volumeMounts: [
 					{
 						name: 'zigbee2mqtt-data-volume',
@@ -882,6 +910,7 @@ type AppDefinition = {
 	targetPort?: number;
 	spec: core.v1.PodSpec;
 	strategy?: appsTypes.v1.DeploymentStrategy;
+	podAnnotations?: Record<string, pulumi.Input<string>>;
 	ingress?: {host: string; auth: boolean};
 	/** For apps that can't listen on IPv6, so Traefik doesn't route half their requests to a dead endpoint */
 	ipv4Only?: boolean;
