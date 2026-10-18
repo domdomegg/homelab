@@ -3,7 +3,6 @@ import * as k8s from '@pulumi/kubernetes';
 import {apps} from './appDefinitions';
 import {provider} from './provider';
 import {traefik} from './traefik';
-import env from '../env/prod';
 
 apps.forEach((app) => {
 	const labels = {app: app.name};
@@ -65,7 +64,6 @@ apps.forEach((app) => {
 		});
 
 		if (app.ingress) {
-			// authSigninURL is static, so after logging in you land on the app's root, not the page you asked for
 			const auth = app.ingress.auth
 				? new k8s.apiextensions.CustomResource(`${app.name}-auth`, {
 					apiVersion: 'traefik.io/v1alpha1',
@@ -77,10 +75,8 @@ apps.forEach((app) => {
 						forwardAuth: {
 							// In-cluster: via the public hostname, every auth check hairpins out
 							// through NAT or the relay, which made authenticated apps hang for up
-							// to 60s whenever that path blipped. authSigninURL is a browser
-							// redirect, so it has to be public.
-							address: 'http://vouch-proxy-svc.default.svc.cluster.local/validate',
-							authSigninURL: `https://vouch.${env.BASE_DOMAIN}/login?url=https://${app.ingress.host}/`,
+							// to 60s whenever that path blipped.
+							address: 'http://oauth2-proxy-svc.default.svc.cluster.local/',
 						},
 					},
 				}, {provider, dependsOn: [traefik]})
