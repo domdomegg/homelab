@@ -231,7 +231,6 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     mkdir -p ~/.kube && ssh -t xps 'sudo cat /etc/rancher/k3s/k3s.yaml | sed "s/\[::1]/\[$(ip route get 2606:4700:4700::1111 | awk '\''{print $11}'\'')]/g"' > ~/.kube/config
     ```
     This will substitute in the IP the system uses to reach the internet as the address to connect with kubectl.
-15. On a brand-new, empty Home Assistant volume, restore the volume's files from a backup. Copy them onto the volume, rather than using HA's own restore, since `configuration.yaml` is mounted read-only from the `ha-configmap` ConfigMap. Or, to start fresh, create empty `automations.yaml`, `scripts.yaml` and `scenes.yaml` in `/config`, and [install HACS](https://hacs.xyz/docs/use/download/download/) by hand. On an empty volume, Zigbee2MQTT writes its config from the `ZIGBEE2MQTT_CONFIG_*` env vars and shows its onboarding page at `z2m.<BASE_DOMAIN>`. Devices need re-pairing unless its volume is restored too.
 
 ## Upgrading k3s
 
