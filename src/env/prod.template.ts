@@ -15,6 +15,9 @@ const env: Env = {
 	MCP_AUTH_WRAPPER_SECRET: '',
 	MCP_AGGREGATOR_SECRET: '',
 	MCP_LOCAL_TUNNEL_SECRET: '',
+
+	BACKUP_RCLONE_DRIVE_TOKEN: '',
+	BACKUP_AGE_RECIPIENT: '',
 };
 
 export default env;

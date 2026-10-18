@@ -11,7 +11,7 @@
     "customManagers": [
         {
             "customType": "regex",
-            "fileMatch": ["src/k8s/appDefinitions.ts"],
+            "fileMatch": ["src/k8s/appDefinitions.ts", "src/k8s/backup.ts"],
             "matchStrings": ["('|\\\")(?<depName>[a-z0-9-/.]*?):(?<currentValue>[a-z0-9-/.]*?)@(?<currentDigest>sha256:[0-9a-f]+?)('|\\\")"],
             "datasourceTemplate": "docker"
         },
