@@ -193,7 +193,7 @@ export const apps: AppDefinition[] = [
 					'--oidc-email-claim=sub',
 					'--skip-claims-from-profile-url',
 					'--email-domain=*',
-					`--redirect-url=https://auth.${env.BASE_DOMAIN}/oauth2/callback`,
+					`--redirect-url=https://auth-proxy.${env.BASE_DOMAIN}/oauth2/callback`,
 					// Covers both the apps and the callback host, so one login works everywhere
 					`--cookie-domain=.${env.BASE_DOMAIN}`,
 					`--whitelist-domain=.${env.BASE_DOMAIN}`,
@@ -208,7 +208,7 @@ export const apps: AppDefinition[] = [
 				}],
 			}],
 		},
-		ingress: {host: `auth.${env.BASE_DOMAIN}`, auth: false},
+		ingress: {host: `auth-proxy.${env.BASE_DOMAIN}`, auth: false},
 	},
 	{
 		name: 'esphome',
