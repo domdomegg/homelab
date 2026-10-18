@@ -18,6 +18,13 @@ const npmBootInstall = (pkg: string) => `npm install --no-save --omit=dev --pref
 const npmBin = (pkg: string) => `/tmp/srv/node_modules/.bin/${pkg}`;
 // mcp-auth-wrapper's image entrypoint, for pods that run a boot step first.
 const execWrapper = 'exec node /app/dist/index.js';
+// OAuth redirect URIs our MCP servers hand codes to without a confirmation page: the
+// aggregator's upstream callback, plus Claude's (setting this replaces the servers' defaults).
+const mcpAllowedRedirectUris = [
+	`https://mcp.${env.BASE_DOMAIN}/upstream-auth/callback`,
+	'https://claude.ai/api/mcp/auth_callback',
+	'https://claude.com/api/mcp/auth_callback',
+];
 
 export const apps: AppDefinition[] = [
 	{
@@ -363,6 +370,7 @@ export const apps: AppDefinition[] = [
 					{name: 'GOOGLE_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID},
 					{name: 'GOOGLE_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET},
 					{name: 'MCP_BASE_URL', value: `https://${name}.mcp.${env.BASE_DOMAIN}`},
+					{name: 'ALLOWED_REDIRECT_URIS', value: mcpAllowedRedirectUris.join(',')},
 				],
 			}],
 		},
@@ -435,13 +443,14 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'starling-bank-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c92c1e5f30798bf995e97351e26e9dd3663b3022ff7ea176e03ec5a91f3fa902',
 				command: ['sh', '-c', `${npmBootInstall('starling-bank-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
 						command: [npmBin('starling-bank-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+						allowedRedirectUris: mcpAllowedRedirectUris,
 						envPerUser: [
 							{name: 'STARLING_BANK_ACCESS_TOKEN', label: 'Starling Bank Access Token', secret: true},
 						],
@@ -475,13 +484,14 @@ export const apps: AppDefinition[] = [
 			securityContext: {fsGroup: 1000},
 			containers: [{
 				name: 'airtable-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c92c1e5f30798bf995e97351e26e9dd3663b3022ff7ea176e03ec5a91f3fa902',
 				command: ['sh', '-c', `${npmBootInstall('airtable-mcp-server')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
 						command: [npmBin('airtable-mcp-server')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+						allowedRedirectUris: mcpAllowedRedirectUris,
 						envPerUser: [
 							{name: 'AIRTABLE_API_KEY', label: 'Airtable Personal Access Token', secret: true},
 						],
@@ -514,13 +524,14 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'openfoodfacts-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c92c1e5f30798bf995e97351e26e9dd3663b3022ff7ea176e03ec5a91f3fa902',
 				command: ['sh', '-c', `${npmBootInstall('openfoodfacts-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
 						command: [npmBin('openfoodfacts-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+						allowedRedirectUris: mcpAllowedRedirectUris,
 						envPerUser: [
 							{name: 'OFF_USER_AGENT', label: 'User Agent (e.g. MyApp/1.0 (email@example.com))'},
 							{name: 'OFF_USER_ID', label: 'OpenFoodFacts Username (optional)'},
@@ -553,13 +564,14 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'olio-volunteer-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c92c1e5f30798bf995e97351e26e9dd3663b3022ff7ea176e03ec5a91f3fa902',
 				command: ['sh', '-c', `${npmBootInstall('olio-volunteer-mcp')} && ${execWrapper}`],
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
 						command: [npmBin('olio-volunteer-mcp')],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+						allowedRedirectUris: mcpAllowedRedirectUris,
 						envPerUser: [
 							{name: 'OLIO_SESSION_ID', label: 'Olio Volunteer Hub _session_id cookie', secret: true},
 						],
@@ -591,7 +603,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'ha-mcp',
-				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:969f776116785822ad8acd2062e3c8e9edbdd52a9d4374e7ebed43b2e76376f5',
+				image: 'ghcr.io/domdomegg/mcp-auth-wrapper:latest@sha256:c92c1e5f30798bf995e97351e26e9dd3663b3022ff7ea176e03ec5a91f3fa902',
 				// Root, so the boot step can apk/pip install. uv tool install puts a real `ha-mcp` bin
 				// on PATH; `uvx ha-mcp` would leave a 42Mi uv launcher resident beside the server.
 				command: ['sh', '-c'],
@@ -606,6 +618,7 @@ export const apps: AppDefinition[] = [
 						value: JSON.stringify({
 							command: ['ha-mcp'],
 							auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+							allowedRedirectUris: mcpAllowedRedirectUris,
 							envPerUser: [
 								{name: 'HOMEASSISTANT_TOKEN', label: 'Home Assistant Long-Lived Access Token', secret: true},
 							],
@@ -650,6 +663,7 @@ export const apps: AppDefinition[] = [
 					value: JSON.stringify({
 						command: ['python', '/app/whatsapp-mcp-server/run_server.py'],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
+						allowedRedirectUris: mcpAllowedRedirectUris,
 						storage: '/app/data/mcp.sqlite',
 						issuerUrl: `https://whatsapp.mcp.${env.BASE_DOMAIN}`,
 						secret: env.MCP_AUTH_WRAPPER_SECRET,
@@ -734,7 +748,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'mcp-aggregator',
-				image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:f51decc5830e559756aeec3b085bb7f9bded77e4152fc76224a89c372f00ac9e',
+				image: 'ghcr.io/domdomegg/mcp-aggregator:latest@sha256:a683eb3cd650f1bc0df4975d267d7b847958f34f262703dfbcada6d813e5bc84',
 				env: [{
 					name: 'MCP_AGGREGATOR_CONFIG',
 					value: JSON.stringify({
