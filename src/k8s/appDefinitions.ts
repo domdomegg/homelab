@@ -319,7 +319,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'edge-tts',
-				image: 'ghcr.io/domdomegg/wyoming-edge-tts:0.1.2@sha256:5c85b741df52cfd0dc5c0befafec4810d2be8285cb7395de164d87d6125d60b7',
+				image: 'ghcr.io/domdomegg/wyoming-edge-tts:0.1.3@sha256:95ee5f48299c5e59fae33a933b00a6611fe48a56fe4375aeed6d2480794f38fc',
 			}],
 		},
 	},
