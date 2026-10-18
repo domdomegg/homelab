@@ -29,4 +29,6 @@ export type Env = {
 	BACKUP_RCLONE_DRIVE_TOKEN: string;
 	/** age public key backups are encrypted to, from `age-keygen`. The private key stays out of the cluster. @example age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p */
 	BACKUP_AGE_RECIPIENT: string;
+	/** ID of the "Homelab backup succeeded" HA automation's webhook trigger. See README "Backups". */
+	BACKUP_HA_WEBHOOK_ID: string;
 };

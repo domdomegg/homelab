@@ -28,16 +28,19 @@ The `backup` CronJob ([`backup.ts`](./src/k8s/backup.ts)) runs nightly at 03:30 
 
 Check on it with `kubectl get cronjob,jobs` and `kubectl logs job/<name>`. A failed run shows as a failed Job.
 
+Each successful run calls a Home Assistant webhook, which sets `input_datetime.last_homelab_backup`. The "Homelab backup overdue" automation checks it at 09:00 and notifies the Pixel 9 Pro if it's more than 26 hours old, so you hear about any failure, including the job not running at all. Both automations and the helper are managed in the HA UI, not here.
+
 ### Setting up
 
-Both values go in `homelab/prod.ts` in `domdomegg/secrets`, which is the `PROD_ENV` GitHub secret. While either is empty, the job fails.
+These go in `homelab/prod.ts` in `domdomegg/secrets`, which is the `PROD_ENV` GitHub secret. While any is empty, the job fails.
 
 - `BACKUP_AGE_RECIPIENT`: run `age-keygen -o homelab-backup-key.txt`, then use the `Public key: age1...` it prints. Keep `homelab-backup-key.txt` in `domdomegg/secrets`. It's the only way to decrypt the backups, and it never goes into the cluster.
-- `BACKUP_RCLONE_DRIVE_TOKEN`: on a machine with a browser, run the commands below and sign in as the Drive owner. Then use the JSON token they print. The `drive.file` scope only lets the token see files that rclone created.
+- `BACKUP_RCLONE_DRIVE_TOKEN`: a refresh token for the Drive owner from the Google MCP servers' OAuth client (`GOOGLE_MCP_CLIENT_ID`), with the `drive.file` scope, which only lets it see files rclone created. rclone's own client is being retired. The MCP client has no loopback redirect URI, so either add `http://127.0.0.1:53682/` to it in the Cloud Console and run the commands below, or run the OAuth flow by hand through a Google MCP wrapper's `/callback`, which forwards codes to loopback addresses. Then use the JSON token.
   ```bash
-  rclone config create homelab-backup drive scope=drive.file
+  rclone config create homelab-backup drive scope=drive.file client_id=... client_secret=...
   rclone config show homelab-backup | sed -n 's/^token = //p'
   ```
+- `BACKUP_HA_WEBHOOK_ID`: the webhook ID on the "Homelab backup succeeded" HA automation.
 
 ### Restoring
 

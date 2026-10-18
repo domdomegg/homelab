@@ -18,6 +18,7 @@ const env: Env = {
 
 	BACKUP_RCLONE_DRIVE_TOKEN: '',
 	BACKUP_AGE_RECIPIENT: '',
+	BACKUP_HA_WEBHOOK_ID: '',
 };
 
 export default env;

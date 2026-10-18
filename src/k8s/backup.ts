@@ -11,8 +11,12 @@ const backupSecret = new k8s.core.v1.Secret('backup-secret', {
 		name: 'backup-secret',
 	},
 	stringData: {
+		// rclone's shared client is being retired, so use the Google MCP servers' client
+		RCLONE_CONFIG_GDRIVE_CLIENT_ID: env.GOOGLE_MCP_CLIENT_ID,
+		RCLONE_CONFIG_GDRIVE_CLIENT_SECRET: env.GOOGLE_MCP_CLIENT_SECRET,
 		RCLONE_CONFIG_GDRIVE_TOKEN: env.BACKUP_RCLONE_DRIVE_TOKEN,
 		AGE_RECIPIENT: env.BACKUP_AGE_RECIPIENT,
+		HA_WEBHOOK_ID: env.BACKUP_HA_WEBHOOK_ID,
 	},
 }, {provider});
 
@@ -57,6 +61,9 @@ prune() {
 prune daily 7
 prune weekly 4
 prune monthly 6
+
+# Dead man's switch: HA alerts if this hasn't happened for 26 hours (see README)
+wget -q -O /dev/null --post-data='' "http://ha-svc/api/webhook/$HA_WEBHOOK_ID"
 `;
 
 new k8s.batch.v1.CronJob('backup-cronjob', {
