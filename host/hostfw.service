@@ -1,0 +1,17 @@
+[Unit]
+Description=Host firewall (nftables table inet hostfw)
+# Load before the network and k3s come up. Doesn't use nftables.service: its
+# default /etc/nftables.conf runs `flush ruleset`, which would wipe k3s's rules.
+DefaultDependencies=no
+Before=network-pre.target k3s.service
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/hostfw.nft
+ExecReload=/usr/sbin/nft -f /etc/hostfw.nft
+ExecStop=/usr/sbin/nft delete table inet hostfw
+
+[Install]
+WantedBy=sysinit.target

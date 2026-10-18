@@ -186,7 +186,29 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     ```
 
     Cluster CIDR range can be generated with https://unique-local-ipv6.com/ (replace `fd7d:4ce0:5b35` with the part you've generated here). The CIDRs can't be changed after the cluster is created. We disable the bundled Traefik so we can install our own via Helm, version-pinned and configured in [`traefik.ts`](./src/k8s/traefik.ts).
-12. Set up Bluetooth for Home Assistant (see [official docs](https://www.home-assistant.io/integrations/bluetooth)). In short on my device it was:
+12. Add the host firewall. It blocks just two ports from outside the machine: `8472/udp` (flannel VXLAN, which is unauthenticated, so anyone who can reach it can inject packets into the pod network) and `10250/tcp` (the kubelet API). Neither is needed from outside on a single-node cluster. Everything else (SSH, 80/443 via Traefik, 6443 for CI, Home Assistant's host-network ports) is deliberately left open as before, and traffic from loopback, the k3s interfaces and the pod/service CIDRs is still allowed (e.g. metrics-server scrapes the kubelet from a pod).
+
+    The rules are a dedicated nftables table, [`host/hostfw.nft`](./host/hostfw.nft), loaded at boot by [`host/hostfw.service`](./host/hostfw.service). This doesn't use ufw (which fights k3s's iptables rules) or the stock `nftables.service` (its `/etc/nftables.conf` runs `flush ruleset`, which would wipe k3s's rules).
+
+    From a checkout of this repo:
+    ```bash
+    scp host/hostfw.nft host/hostfw.service xps:/tmp/
+    ```
+    Then on the XPS:
+    ```bash
+    sudo install -m 644 /tmp/hostfw.nft /etc/hostfw.nft
+    sudo install -m 644 /tmp/hostfw.service /etc/systemd/system/hostfw.service
+    sudo systemctl daemon-reload
+    # Safety net: undo it in 5 minutes unless cancelled
+    sudo systemd-run --unit=hostfw-rollback --on-active=5min sh -c 'nft delete table inet hostfw; systemctl disable hostfw.service'
+    sudo systemctl enable --now hostfw.service
+    ```
+    Keep this session open, and check `ssh xps` and `kubectl get nodes` still work from a new terminal. Then cancel the rollback:
+    ```bash
+    sudo systemctl stop hostfw-rollback.timer
+    ```
+    To change the rules later, edit `/etc/hostfw.nft` and run `sudo systemctl reload hostfw`.
+13. Set up Bluetooth for Home Assistant (see [official docs](https://www.home-assistant.io/integrations/bluetooth)). In short on my device it was:
     ```bash
     sudo apt install -y bluez
 
@@ -198,7 +220,7 @@ To get a kubernetes cluster that you can run this all on, we install Ubuntu serv
     sudo systemctl start dbus-broker
     sudo systemctl enable dbus-broker
     ```
-13. Get the kubeconfig.
+14. Get the kubeconfig.
 
     Find it in `/etc/rancher/k3s/k3s.yaml`.
     You might want to tweak the `server: ` line to set the remote address, and potentially add `tls-server-name: localhost` to avoid certificate warnings (this matches the flag used in the remote access section above).

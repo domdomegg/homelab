@@ -1,0 +1,34 @@
+#!/usr/sbin/nft -f
+# Minimal host firewall for the XPS: blocks flannel VXLAN (8472/udp) and the
+# kubelet (10250/tcp) from outside the machine. Everything else is accepted
+# here and left to k3s's own iptables-nft tables, which this doesn't touch.
+# Install: see "Manual setup notes" in README.md.
+
+# Re-runnable: create (if missing) then delete, so the load below is a clean
+# atomic replace. Never `flush ruleset`, that would wipe k3s's rules.
+table inet hostfw
+delete table inet hostfw
+
+table inet hostfw {
+	chain input {
+		type filter hook input priority filter - 10; policy accept;
+
+		# Local traffic, incl. hostNetwork pods (e.g. Home Assistant) talking to
+		# the node's own IPs
+		iif lo accept
+
+		# Pods (cni0) and the flannel overlay
+		iifname { "cni0", "flannel.1", "flannel-v6.1" } accept
+
+		# Single-node cluster: VXLAN never legitimately arrives from outside.
+		# Dropped before the CIDR rules so a spoofed pod source IP can't inject
+		# packets into the pod network.
+		udp dport 8472 counter drop
+
+		# Pod and service CIDRs (e.g. metrics-server scraping the kubelet)
+		ip saddr { 10.42.0.0/16, 10.43.0.0/16 } accept
+		ip6 saddr { fd7d:4ce0:5b35:1::/64, fd7d:4ce0:5b35:2::/112 } accept
+
+		tcp dport 10250 counter drop
+	}
+}
