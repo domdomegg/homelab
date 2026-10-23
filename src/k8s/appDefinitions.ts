@@ -643,13 +643,12 @@ export const apps: AppDefinition[] = [
 		ingress: {host: `ha.mcp.${env.BASE_DOMAIN}`, auth: false},
 	},
 
-	// WhatsApp MCP (domdomegg/whatsapp-mcp-extended fork; personal account via whatsmeow bridge).
-	// The combined image bundles mcp-auth-wrapper, which gates access via hass-oidc-provider and
-	// spawns one combined per-user stdio server (run_server.py) per authenticated user.
-	// Each user gets their own store/<MCP_USER_ID>/ (whatsmeow session + history) and a private
-	// loopback bridge — full isolation behind the shared aggregator. Onboard via the get_setup_qr
-	// tool (scan QR in WhatsApp > Linked Devices). Single-account-per-user; unofficial API (ban risk).
-	// NB: runs as non-root (uid 1000), so fsGroup is set for PVC write access.
+	// WhatsApp MCP (domdomegg/whatsapp-mcp-extended): one Go binary that is both the whatsmeow
+	// client and an MCP server on stdio. The image's entrypoint is mcp-auth-wrapper, which gates
+	// access via hass-oidc-provider and spawns one /app/whatsapp-mcp per authenticated user and
+	// profile (MCP_USER_ID + MCP_PROFILE_ID); each gets its own store/<user>/<profile>/ (whatsmeow
+	// session + history). Onboard via the get_setup_qr tool (scan in WhatsApp > Linked Devices).
+	// Unofficial API (ban risk). Runs as non-root (uid 1000), so fsGroup is set for PVC writes.
 	{
 		name: 'whatsapp-mcp',
 		targetPort: 3000,
@@ -661,7 +660,7 @@ export const apps: AppDefinition[] = [
 				env: [{
 					name: 'MCP_AUTH_WRAPPER_CONFIG',
 					value: JSON.stringify({
-						command: ['python', '/app/whatsapp-mcp-server/run_server.py'],
+						command: ['/app/whatsapp-mcp'],
 						auth: {issuer: `https://oidc.${env.BASE_DOMAIN}`},
 						allowedRedirectUris: mcpAllowedRedirectUris,
 						storage: '/app/data/mcp.sqlite',
@@ -673,15 +672,14 @@ export const apps: AppDefinition[] = [
 					name: 'mcp-data-volume',
 					mountPath: '/app/data',
 				}],
-				// Accurate liveness: the per-user Go bridge can lose WhatsApp for good (its
-				// watchdog exits and nothing respawns it) while the wrapper and the MCP
-				// server keep answering, so a port check would say healthy. healthcheck.py
-				// (in the image) fails when any launcher's bridge is gone, unreachable, or
-				// reports a paired account disconnected; unpaired accounts are ignored so
-				// the pod does not restart forever waiting for a QR scan. 6 x 30s = ~3 min
-				// of failure before the restart, which also covers a bridge still connecting.
+				// Liveness: each per-account process writes a status file every 15s and
+				// `whatsapp-mcp healthcheck` reads them all; it fails when a linked account has
+				// been disconnected for more than 2 minutes or a live process stopped writing.
+				// Exited processes are not failures (the wrapper respawns on the next call) and
+				// unlinked accounts are ignored, so the pod never restart-loops on a QR wait.
+				// 6 x 30s ≈ 3 min before the restart.
 				livenessProbe: {
-					exec: {command: ['python', '/app/whatsapp-mcp-server/healthcheck.py']},
+					exec: {command: ['/app/whatsapp-mcp', 'healthcheck']},
 					initialDelaySeconds: 60,
 					periodSeconds: 30,
 					timeoutSeconds: 10,
