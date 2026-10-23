@@ -673,6 +673,20 @@ export const apps: AppDefinition[] = [
 					name: 'mcp-data-volume',
 					mountPath: '/app/data',
 				}],
+				// Accurate liveness: the per-user Go bridge can lose WhatsApp for good (its
+				// watchdog exits and nothing respawns it) while the wrapper and the MCP
+				// server keep answering, so a port check would say healthy. healthcheck.py
+				// (in the image) fails when any launcher's bridge is gone, unreachable, or
+				// reports a paired account disconnected; unpaired accounts are ignored so
+				// the pod does not restart forever waiting for a QR scan. 6 x 30s = ~3 min
+				// of failure before the restart, which also covers a bridge still connecting.
+				livenessProbe: {
+					exec: {command: ['python', '/app/whatsapp-mcp-server/healthcheck.py']},
+					initialDelaySeconds: 60,
+					periodSeconds: 30,
+					timeoutSeconds: 10,
+					failureThreshold: 6,
+				},
 			}],
 			volumes: [{
 				name: 'mcp-data-volume',
