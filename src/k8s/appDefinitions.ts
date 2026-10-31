@@ -842,7 +842,7 @@ export const apps: AppDefinition[] = [
 				// the public-facing nginx credential-free; the signing key only
 				// rotates on cluster rebuild, which restarts this pod anyway.
 				name: 'fetch-jwks',
-				image: 'curlimages/curl:latest@sha256:11e64e28c5f58c8d93ee95fcf22ac055f48b0bc440e0ce7d8013bbb5ad6aa8ac',
+				image: 'curlimages/curl:latest@sha256:3fb7e13e5d179a845c97d78204f3f1064d1907037f26a3ebf91710571151fd93',
 				command: ['sh', '-c', 'curl -sSf --cacert /var/run/secrets/apiserver/ca.crt -H "Authorization: Bearer $(cat /var/run/secrets/apiserver/token)" https://kubernetes.default.svc/openid/v1/jwks -o /jwks/jwks'],
 				volumeMounts: [
 					{name: 'jwks', mountPath: '/jwks'},
