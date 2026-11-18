@@ -348,34 +348,6 @@ export const apps: AppDefinition[] = [
 		},
 		ingress: {host: `oidc.${env.BASE_DOMAIN}`, auth: false},
 	},
-	// Google MCP servers (native OAuth to Google)
-	...([
-		'gmail',
-		'google-cal',
-		'google-contacts',
-		'google-documents',
-		'google-drive',
-		'google-maps-places',
-		'google-sheets',
-	]).map((name) => ({
-		name: `${name}-mcp`,
-		targetPort: 3000,
-		spec: {
-			containers: [{
-				name: `${name}-mcp`,
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
-				command: ['sh', '-c', `${npmBootInstall(`${name}-mcp`)} && exec ${npmBin(`${name}-mcp`)}`],
-				env: [
-					{name: 'MCP_TRANSPORT', value: 'http'},
-					{name: 'GOOGLE_CLIENT_ID', value: env.GOOGLE_MCP_CLIENT_ID},
-					{name: 'GOOGLE_CLIENT_SECRET', value: env.GOOGLE_MCP_CLIENT_SECRET},
-					{name: 'MCP_BASE_URL', value: `https://${name}.mcp.${env.BASE_DOMAIN}`},
-					{name: 'ALLOWED_REDIRECT_URIS', value: mcpAllowedRedirectUris.join(',')},
-				],
-			}],
-		},
-		ingress: {host: `${name}.mcp.${env.BASE_DOMAIN}`, auth: false},
-	})),
 
 	// Google Workspace MCP (taylorwilsdon/google_workspace_mcp) — Python, runs via uvx.
 	// Single comprehensive server (Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks,
@@ -776,17 +748,9 @@ export const apps: AppDefinition[] = [
 						// their discovery metadata on any Host, and the endpoints they
 						// advertise there are the public URLs.
 						upstreams: [
-							{name: 'gmail', url: 'http://gmail-mcp-svc/mcp'},
-							{name: 'gmail-2', url: 'http://gmail-mcp-svc/mcp'},
-							{name: 'google-cal', url: 'http://google-cal-mcp-svc/mcp'},
-							{name: 'google-contacts', url: 'http://google-contacts-mcp-svc/mcp'},
-							{name: 'google-documents', url: 'http://google-documents-mcp-svc/mcp'},
-							{name: 'google-drive', url: 'http://google-drive-mcp-svc/mcp'},
-							{name: 'google-maps-places', url: 'http://google-maps-places-mcp-svc/mcp'},
-							{name: 'google-sheets', url: 'http://google-sheets-mcp-svc/mcp'},
 							{name: 'google-workspace', url: 'http://google-workspace-mcp-svc/mcp'},
 							// Second registration of the same server: a distinct aggregator session so one
-							// person can authorize a second Google account in parallel (cf. gmail/gmail-2).
+							// person can authorize a second Google account in parallel.
 							{name: 'google-workspace-2', url: 'http://google-workspace-mcp-svc/mcp'},
 							{name: 'starling-bank', url: 'http://starling-bank-mcp-svc/mcp'},
 							{name: 'airtable', url: 'http://airtable-mcp-svc/mcp'},
