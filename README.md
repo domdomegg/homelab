@@ -17,7 +17,7 @@ Useful e.g. to get an MCP server running `npx -y <package>` to pick up the lates
 Run the [Restart service workflow](https://github.com/domdomegg/homelab/actions/workflows/restart.yaml) from the Actions tab, or:
 
 ```bash
-gh workflow run restart.yaml -f service=google-drive-mcp
+gh workflow run restart.yaml -f service=google-workspace-mcp
 ```
 
 The service name is the `name` from [`appDefinitions.ts`](./src/k8s/appDefinitions.ts).
