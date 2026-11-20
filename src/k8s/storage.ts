@@ -49,6 +49,12 @@ alexa:
     filter:
       include_entity_globs:
         - "light.*_lights"
+
+# Save the audio of every voice pipeline run, for evaluating STT models and
+# collecting wake word training data. Excluded from backups (see backup.ts).
+# https://www.home-assistant.io/integrations/assist_pipeline/
+assist_pipeline:
+  debug_recording_dir: /config/assist_recordings
 `,
 	},
 }, {provider});
