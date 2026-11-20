@@ -36,6 +36,7 @@ OUT="\${WORK_DIR:-/work}/$FILE"
 tar -c -C /volumes \\
 	--exclude=ha/backups \\
 	--exclude=ha/tts \\
+	--exclude=ha/assist_recordings \\
 	--exclude=ha/deps \\
 	--exclude=ha/.cache \\
 	--exclude='ha/home-assistant.log*' \\
