@@ -675,7 +675,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'barcode-scanner-mcp',
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+				image: 'node:lts-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5',
 				command: ['sh', '-c', `${npmBootInstall('barcode-scanner-mcp')} && exec ${npmBin('barcode-scanner-mcp')}`],
 				env: [
 					{name: 'MCP_TRANSPORT', value: 'http'},
@@ -692,7 +692,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'benepass-mcp',
-				image: 'node:lts-alpine@sha256:4f696fbf39f383c1e486030ba6b289a5d9af541642fc78ab197e584a113b9c03',
+				image: 'node:lts-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5',
 				command: ['sh', '-c', `${npmBootInstall('benepass-mcp')} && exec ${npmBin('benepass-mcp')}`],
 				env: [
 					{name: 'MCP_TRANSPORT', value: 'http'},
