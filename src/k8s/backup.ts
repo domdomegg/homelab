@@ -88,7 +88,7 @@ new k8s.batch.v1.CronJob('backup-cronjob', {
 						automountServiceAccountToken: false,
 						containers: [{
 							name: 'backup',
-							image: 'rclone/rclone:1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5',
+							image: 'rclone/rclone:1.76.0@sha256:7cbeec24a44f206067597c0368be4de90ae19a64d5113c7d1938bd737a81e466',
 							command: ['/bin/sh', '-c', backupScript],
 							env: [
 								{name: 'RCLONE_CONFIG_GDRIVE_TYPE', value: 'drive'},
