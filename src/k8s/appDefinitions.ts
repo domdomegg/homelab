@@ -290,7 +290,7 @@ export const apps: AppDefinition[] = [
 		spec: {
 			containers: [{
 				name: 'whisper',
-				image: 'rhasspy/wyoming-whisper:3.1.0@sha256:9501d2659eee83b6eead98d53842193e5fed011eda6c5b1c3ad36f3146b28fed',
+				image: 'rhasspy/wyoming-whisper:3.8.1@sha256:ba6fcb6056ebe237d15a325381763a80af2fc8fcedaa04f6a714a7375eb20d80',
 				args: ['--stt-library', 'sherpa', '--model', 'sherpa-onnx-nemo-parakeet_tdt_transducer_110m-en-36000-int8', '--language', 'en'],
 				volumeMounts: [
 					{
