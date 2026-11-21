@@ -11,19 +11,19 @@
     "customManagers": [
         {
             "customType": "regex",
-            "fileMatch": ["src/k8s/appDefinitions.ts", "src/k8s/backup.ts"],
+            "managerFilePatterns": ["/src/k8s/appDefinitions.ts/", "/src/k8s/backup.ts/"],
             "matchStrings": ["('|\\\")(?<depName>[a-z0-9-/.]*?):(?<currentValue>[a-z0-9-/.]*?)@(?<currentDigest>sha256:[0-9a-f]+?)('|\\\")"],
             "datasourceTemplate": "docker"
         },
         {
             "customType": "regex",
-            "fileMatch": ["src/k8s/.*\\.ts$"],
+            "managerFilePatterns": ["/src/k8s/.*\\.ts$/"],
             "matchStrings": ["renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) registryUrl=(?<registryUrl>\\S+)\\s+version: '(?<currentValue>[^']+)'"],
             "versioningTemplate": "helm"
         },
         {
             "customType": "regex",
-            "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+            "managerFilePatterns": ["/^\\.github/workflows/.*\\.ya?ml$/"],
             "matchStrings": ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+[a-z-]+: (?<currentValue>\\S+)"],
             "extractVersionTemplate": "^v?(?<version>.*)$"
         }
