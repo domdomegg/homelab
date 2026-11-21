@@ -14,7 +14,7 @@ const namespace = new k8s.core.v1.Namespace('traefik-namespace', {
 export const traefik = new k8s.helm.v3.Release('traefik', {
 	chart: 'traefik',
 	// renovate: datasource=helm depName=traefik registryUrl=https://traefik.github.io/charts
-	version: '41.7.1',
+	version: '42.4.0',
 	repositoryOpts: {
 		repo: 'https://traefik.github.io/charts',
 	},
