@@ -815,7 +815,7 @@ export const apps: AppDefinition[] = [
 			}],
 			containers: [{
 				name: 'nginx',
-				image: 'nginx:stable-alpine@sha256:0d3b80406a13a767339fbe2f41406d6c7da727ab89cf8fae399e81f780f814d1',
+				image: 'nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3',
 				volumeMounts: [
 					{name: 'content', mountPath: '/data'},
 					{name: 'jwks', mountPath: '/data/openid/v1'},
