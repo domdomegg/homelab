@@ -28,6 +28,7 @@
             "extractVersionTemplate": "^v?(?<version>.*)$"
         }
     ],
+    "prHourlyLimit": 0,
     "minimumReleaseAge": "7 days",
     "minimumReleaseAgeBehaviour": "timestamp-optional",
     "packageRules": [
